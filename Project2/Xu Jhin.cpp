@@ -1,7 +1,7 @@
 #include "PluginSDK.h"
 #include <map>
 //auto heal, auto trinket
-
+//no q, W fix,auto w?,r no use,last hit q , q hit range + 300 then q target,flee,w gap close aa work?,heal problem
 PluginSetup("Xu Jhin");
 
 IMenu* MainMenu;
@@ -20,7 +20,7 @@ IMenuOption* ComboQ;
 IMenuOption* AutoEGapcloser;
 IMenuOption* AutoWGapcloser;
 IMenuOption* ComboW;
-IMenuOption* ComboWcc;
+//IMenuOption* ComboWcc;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* RRange;
@@ -28,9 +28,13 @@ IMenuOption* HarassQ;
 IMenuOption* HarassW;
 IMenuOption* HarassManaPercent;
 IMenuOption* FarmQ;
+IMenuOption* FarmW;
+IMenuOption* FarmE;
 IMenuOption* lasthitQ;
 IMenuOption* FarmManaPercent;
 IMenuOption* JungleQ;
+IMenuOption* JungleW;
+IMenuOption* JungleE;
 IMenuOption* JungleManaPercent;
 IMenuOption* UseIgnitekillsteal;
 IMenuOption* KillstealQ;
@@ -41,6 +45,8 @@ IMenuOption* FleeKey;
 IMenuOption* Blade_Cutlass;
 IMenuOption* Ghost_Blade;
 IMenuOption* AutoQSS;
+IMenuOption* AutoHeal;
+IMenuOption* MyHeal;
 IMenuOption* MyHpPreBlade;
 IMenuOption* EnemyHpPreBlade;
 IMenuOption* usepotion;
@@ -91,10 +97,10 @@ void  Menu()
 	UseIgnitecombo = ComboMenu->CheckBox("Use Ignite", true);
 	ComboQ = ComboMenu->CheckBox("Use Q", true);
 	ComboW = ComboMenu->CheckBox("Use W", true);
-	ComboWcc = ComboMenu->CheckBox("Only Use W On Spotted Target", true);
+	//ComboWcc = ComboMenu->CheckBox("Only Use W On Spotted Target", true);
 	for (auto Enemys : GEntityList->GetAllHeros(false, true))
 	{
-		std::string szMenuName = "Use W to CC - " + std::string(Enemys->ChampionName());
+		std::string szMenuName = "Only Use W to CC - " + std::string(Enemys->ChampionName());
 		ChampionuseW[Enemys->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
@@ -114,11 +120,15 @@ void  Menu()
 
 	FarmMenu = MainMenu->AddMenu("LaneClear Setting");
 	FarmQ = FarmMenu->CheckBox("Use Q Farm", false);
+	FarmQ = FarmMenu->CheckBox("Use W Farm", false);
+	FarmQ = FarmMenu->CheckBox("Use E Farm", false);
 	lasthitQ = FarmMenu->CheckBox("Use Q Lasthit out of AA range", true);
 	FarmManaPercent = FarmMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
 
 	JungleMenu = MainMenu->AddMenu("Jungle Setting");
 	JungleQ = JungleMenu->CheckBox("Use Q Jungle", true);
+	JungleQ = JungleMenu->CheckBox("Use W Jungle", true);
+	JungleQ = JungleMenu->CheckBox("Use E Jungle", true);
 	JungleManaPercent = JungleMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
 
 	MiscMenu = MainMenu->AddMenu("Misc Setting");
@@ -130,7 +140,8 @@ void  Menu()
 	AutoEGapcloser = MiscMenu->CheckBox("Use E to Gapclose", true);
 	AutoWGapcloser = MiscMenu->CheckBox("Use W to Gapclose", true);
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
-	//AutoHeal = MiscMenu->CheckBox("Auto Heal", true);
+	AutoHeal = MiscMenu->CheckBox("Auto Heal", true);
+	MyHeal = MiscMenu->AddInteger("Use Heal When My Hp <", 10, 100, 35);
 	//AutoHealT = MiscMenu->CheckBox("Auto Heal Teammate", true);
 
 	FleeMenu = MainMenu->AddMenu("Flee");
@@ -149,6 +160,7 @@ void  Menu()
 	DrawReady = Drawings->CheckBox("Draw Only Ready Spells", true);
 	DrawQ = Drawings->CheckBox("Draw Q", true);
 	DrawW = Drawings->CheckBox("Draw W", false);
+	DrawE = Drawings->CheckBox("Draw E", false);
 	DrawR = Drawings->CheckBox("Draw R", true);
 }
 void LoadSpells()
@@ -309,17 +321,17 @@ void Combo()
 		}
 	}
 
-	/*if (ComboQ->Enabled())
+	if (ComboQ->Enabled())
 	{
 		if (Q->IsReady())
 		{
-			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range() + 300);
-			if (Player->IsValidTarget(target, Q->Range() + 300))
+			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range());
+			if (Player->IsValidTarget(target, Q->Range()))
 			{
-				CastQ(target);
+				Q->CastOnTarget(target);
 			}
 		}
-	}*/
+	}
 	if (ComboW->Enabled())
 	{
 		if (W->IsReady())
@@ -331,7 +343,7 @@ void Combo()
 				{
 					AdvPredictionOutput prediction_output;
 					W->RunPrediction(target, true, kCollidesWithYasuoWall | kCollidesWithHeroes, &prediction_output);
-					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() & ComboWcc->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
@@ -342,6 +354,17 @@ void Combo()
 					}
 				}
 			}
+		}
+	}
+
+	if (ComboW->Enabled())
+	{
+		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
+		AdvPredictionOutput prediction_output;
+		W->RunPrediction(target, true, kCollidesWithYasuoWall | kCollidesWithHeroes, &prediction_output);
+		if (!target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
+		{
+			W->CastOnTarget(target, kHitChanceHigh);
 		}
 	}
 
@@ -418,7 +441,7 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 		int MinionDie = 0;
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
 		{
-			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range() + 300))
+			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()))
 			{
 				auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotQ);
 				auto dmg1 = GDamage->GetAutoAttackDamage(Player, minions, true);
@@ -432,6 +455,16 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (MinionDie > 1)
 						Q->CastOnUnit(minions) || Q->LastHitMinion();
 				}
+				if (FarmW->Enabled() && W->IsReady())
+				{
+					if (Player->IsValidTarget(minions, W->Range()));
+						W->CastOnUnit(minions) || W->LastHitMinion();
+				}
+				if (FarmE->Enabled() && E->IsReady())
+				{
+					if (Player->IsValidTarget(minions, E->Range()));
+					E->CastOnUnit(minions) || E->LastHitMinion();
+				}
 			}
 		}
 
@@ -444,6 +477,30 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
 					Q->CastOnUnit(jMinion);
+				}
+			}
+		}
+		if (JungleW->Enabled() && W->IsReady())
+		{
+			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
+			{
+				if (jMinion != nullptr && !jMinion->IsDead() && Player->IsValidTarget(jMinion, W->Range()))
+				{
+					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
+						return;
+					W->CastOnUnit(jMinion);
+				}
+			}
+		}
+		if (JungleE->Enabled() && E->IsReady())
+		{
+			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
+			{
+				if (jMinion != nullptr && !jMinion->IsDead() && Player->IsValidTarget(jMinion, E->Range()))
+				{
+					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
+						return;
+					E->CastOnUnit(jMinion);
 				}
 			}
 		}
@@ -520,7 +577,7 @@ void AutoImmobile()
 }
 void killsteal()
 {
-	/*if (GGame->IsChatOpen()) return;
+	if (GGame->IsChatOpen()) return;
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		if (Enemy != nullptr && !Enemy->IsDead())
@@ -532,7 +589,7 @@ void killsteal()
 				{
 					if (Enemy->GetHealth() <= dmg && Q->IsReady())
 					{
-						CastQ(Enemy);
+						Q->CastOnTarget(Enemy);
 					}
 				}
 			}
@@ -548,7 +605,7 @@ void killsteal()
 				}
 			}
 		}
-	}*/
+	}
 }
 
 void Usepotion()
@@ -606,6 +663,15 @@ void AutoQss()
 		}
 	}
 }
+
+void AHeal()
+{
+	if (AutoHeal->Enabled() && !Player->IsRecalling() && EnemiesInRange(Player, 550) && Player->HealthPercent() < MyHeal->GetInteger())
+	{
+		Heal->CastOnPlayer();
+	}
+}
+
 /*void Flee()
 {
 	if (!FleeJ(Flee))
@@ -693,10 +759,11 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	Usepotion();
 	lasthit();
 	AutoQss();
+	AHeal();
 	if (semiR && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
 		IUnit *rTarget = GTargetSelector->FindTarget(QuickestKill, SpellDamage, RRange->GetInteger());
-		if (rTarget != nullptr && rTarget && !Player->IsValidTarget(rTarget, Q->Range()) && !Player->IsValidTarget(rTarget, R->Range()))
+		if (rTarget != nullptr && rTarget && !Player->IsValidTarget(rTarget, Q->Range()))
 		{
 			R->CastOnTarget(rTarget, 5);
 		}
