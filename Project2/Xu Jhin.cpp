@@ -20,7 +20,7 @@ IMenuOption* ComboQ;
 IMenuOption* AutoEGapcloser;
 IMenuOption* AutoWGapcloser;
 IMenuOption* ComboW;
-//IMenuOption* ComboWcc;
+IMenuOption* ComboWcc;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* RRange;
@@ -97,7 +97,7 @@ void  Menu()
 	UseIgnitecombo = ComboMenu->CheckBox("Use Ignite", true);
 	ComboQ = ComboMenu->CheckBox("Use Q", true);
 	ComboW = ComboMenu->CheckBox("Use W", true);
-	//ComboWcc = ComboMenu->CheckBox("Only Use W On Spotted Target", true);
+	ComboWcc = ComboMenu->CheckBox("Only Use W On Spotted Target", true);
 	for (auto Enemys : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "Only Use W to CC - " + std::string(Enemys->ChampionName());
@@ -343,12 +343,12 @@ void Combo()
 				{
 					AdvPredictionOutput prediction_output;
 					W->RunPrediction(target, true, kCollidesWithYasuoWall | kCollidesWithHeroes, &prediction_output);
-					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && ComboWcc->Enabled() &&!target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
 					}
-					if (!ChampionuseW[Enemys->GetNetworkId()]->Enabled() && CountEnemiesInRange(1500) == 1)
+					if (!ChampionuseW[Enemys->GetNetworkId()]->Enabled() && ComboWcc->Enabled() && CountEnemiesInRange(1500) == 1 && prediction_output.HitChance >= kHitChanceHigh)
 					{
 						W->CastOnTarget(target, kHitChanceHigh);
 					}
@@ -357,7 +357,7 @@ void Combo()
 		}
 	}
 
-	if (ComboW->Enabled())
+	/*if (ComboW->Enabled())
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
 		AdvPredictionOutput prediction_output;
@@ -366,7 +366,7 @@ void Combo()
 		{
 			W->CastOnTarget(target, kHitChanceHigh);
 		}
-	}
+	}*/
 
 	if (ComboE->Enabled() && E->IsReady())
 	{
@@ -788,7 +788,7 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	GEventManager->AddEventHandler(kEventOnGapCloser, OnGapcloser);
 	if (strcmp(GEntityList->Player()->ChampionName(), "Jhin") == 0)
 	{
-		GGame->PrintChat("Xiao :: Jhin :: Loaded");
+		GGame->PrintChat("<b><font color = \"#f8a101\">Xiao Jhin</font><font color=\"#7FFF00\"> - Loaded</font></b>");
 	}
 	else
 	{
