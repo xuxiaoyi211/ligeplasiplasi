@@ -1,0 +1,10 @@
+﻿  PluginSDK.cpp
+  Xu Jhin.cpp
+Xu Jhin.cpp(168): warning C4305: “参数”: 从“double”到“float”截断
+Xu Jhin.cpp(190): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
+Xu Jhin.cpp(200): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
+Xu Jhin.cpp(631): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(642): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(698): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+LINK : warning LNK4068: 
+  Project2.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\Project2\Release\Xu Jhin.lib

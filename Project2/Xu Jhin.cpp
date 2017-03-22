@@ -283,7 +283,7 @@ void UseItems()
 	}
 }
 
-void CastQ(IUnit* target)
+/*void CastQ(IUnit* target)
 {
 	AdvPredictionOutput prediction_output;
 	Q->RunPrediction(target + 300, true, kCollidesWithYasuoWall, &prediction_output);
@@ -291,7 +291,7 @@ void CastQ(IUnit* target)
 	{
 		Q->CastOnTarget(target, kHitChanceCollision);
 	}
-}
+}*/
 void Combo()
 {
 	if (Ignite != nullptr)
@@ -309,7 +309,7 @@ void Combo()
 		}
 	}
 
-	if (ComboQ->Enabled())
+	/*if (ComboQ->Enabled())
 	{
 		if (Q->IsReady())
 		{
@@ -319,7 +319,7 @@ void Combo()
 				CastQ(target);
 			}
 		}
-	}
+	}*/
 	if (ComboW->Enabled())
 	{
 		if (W->IsReady())
@@ -520,7 +520,7 @@ void AutoImmobile()
 }
 void killsteal()
 {
-	if (GGame->IsChatOpen()) return;
+	/*if (GGame->IsChatOpen()) return;
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		if (Enemy != nullptr && !Enemy->IsDead())
@@ -548,7 +548,7 @@ void killsteal()
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void Usepotion()
