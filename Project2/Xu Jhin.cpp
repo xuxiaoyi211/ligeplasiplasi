@@ -165,7 +165,7 @@ void  Menu()
 }
 void LoadSpells()
 {
-	Q = GPluginSDK->CreateSpell2(kSlotQ, kCircleCast, true, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
+	Q = GPluginSDK->CreateSpell2(kSlotQ, kTargetCast, true, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
 	W = GPluginSDK->CreateSpell2(kSlotW, kLineCast, true, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall| kCollidesWithHeroes));
 	E = GPluginSDK->CreateSpell2(kSlotE, kCircleCast, false, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
 	R = GPluginSDK->CreateSpell2(kSlotR, kLineCast, true, false, static_cast<eCollisionFlags>(kCollidesWithYasuoWall| kCollidesWithHeroes));
@@ -328,7 +328,7 @@ void Combo()
 			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range());
 			if (Player->IsValidTarget(target, Q->Range()))
 			{
-				Q->CastOnTarget(target);
+				Q->CastOnUnit(target);
 			}
 		}
 	}
@@ -488,7 +488,7 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 				{
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
-					W->CastOnUnit(jMinion);
+					W->CastOnTarget(jMinion);
 				}
 			}
 		}
@@ -500,7 +500,7 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 				{
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
-					E->CastOnUnit(jMinion);
+					E->CastOnTarget(jMinion);
 				}
 			}
 		}
