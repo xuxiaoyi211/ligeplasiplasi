@@ -2,6 +2,8 @@
 #include <map>
 //auto heal, auto trinket
 //no q, W fix,auto w?,r no use,last hit q , q hit range + 300 then q target,flee,w gap close aa work?,heal problem
+
+//3/23 lc, jg, heal, last hit q
 PluginSetup("Xu Jhin");
 
 IMenu* MainMenu;
@@ -26,6 +28,7 @@ IMenuOption* ComboR;
 IMenuOption* RRange;
 IMenuOption* HarassQ;
 IMenuOption* HarassW;
+IMenuOption* HarassWcc;
 IMenuOption* HarassManaPercent;
 IMenuOption* FarmQ;
 IMenuOption* FarmW;
@@ -100,7 +103,7 @@ void  Menu()
 	ComboWcc = ComboMenu->CheckBox("Only Use W On Spotted Target", true);
 	for (auto Enemys : GEntityList->GetAllHeros(false, true))
 	{
-		std::string szMenuName = "Only Use W to CC - " + std::string(Enemys->ChampionName());
+		std::string szMenuName = "Use W On - " + std::string(Enemys->ChampionName());
 		ChampionuseW[Enemys->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
@@ -109,26 +112,27 @@ void  Menu()
 
 	HarassMenu = MainMenu->AddMenu("Harass Setting");
 	HarassQ = HarassMenu->CheckBox("Use Q", true);
+	HarassW = HarassMenu->CheckBox("Use W", true);
 	for (auto Enemys : GEntityList->GetAllHeros(false, true))
 	{
-		std::string szMenuName = "Use Q on - " + std::string(Enemys->ChampionName());
+		std::string szMenuName = "Use W on - " + std::string(Enemys->ChampionName());
 		ChampionuseQ[Enemys->GetNetworkId()] = HarassMenu->CheckBox(szMenuName.c_str(), false);
 	}
-	HarassW = HarassMenu->CheckBox("Use W", true);
+	HarassWcc = HarassMenu->CheckBox("Only Use W On Spotted Target", true);
 	HarassManaPercent = HarassMenu->AddInteger("Mana Percent for harass", 10, 100, 70);
 	Drawings = MainMenu->AddMenu("Drawings");
 
 	FarmMenu = MainMenu->AddMenu("LaneClear Setting");
 	FarmQ = FarmMenu->CheckBox("Use Q Farm", false);
-	FarmQ = FarmMenu->CheckBox("Use W Farm", false);
-	FarmQ = FarmMenu->CheckBox("Use E Farm", false);
+	FarmW = FarmMenu->CheckBox("Use W Farm", false);
+	FarmE = FarmMenu->CheckBox("Use E Farm", false);
 	lasthitQ = FarmMenu->CheckBox("Use Q Lasthit out of AA range", true);
 	FarmManaPercent = FarmMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
 
 	JungleMenu = MainMenu->AddMenu("Jungle Setting");
 	JungleQ = JungleMenu->CheckBox("Use Q Jungle", true);
-	JungleQ = JungleMenu->CheckBox("Use W Jungle", true);
-	JungleQ = JungleMenu->CheckBox("Use E Jungle", true);
+	JungleW = JungleMenu->CheckBox("Use W Jungle", true);
+	JungleE = JungleMenu->CheckBox("Use E Jungle", true);
 	JungleManaPercent = JungleMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
 
 	MiscMenu = MainMenu->AddMenu("Misc Setting");
@@ -167,13 +171,13 @@ void LoadSpells()
 {
 	Q = GPluginSDK->CreateSpell2(kSlotQ, kTargetCast, true, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
 	W = GPluginSDK->CreateSpell2(kSlotW, kLineCast, true, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall| kCollidesWithHeroes));
-	E = GPluginSDK->CreateSpell2(kSlotE, kCircleCast, false, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
-	R = GPluginSDK->CreateSpell2(kSlotR, kLineCast, true, false, static_cast<eCollisionFlags>(kCollidesWithYasuoWall| kCollidesWithHeroes));
+	E = GPluginSDK->CreateSpell2(kSlotE, kCircleCast, false, true, static_cast<eCollisionFlags>(kCollidesWithNothing));
+	R = GPluginSDK->CreateSpell2(kSlotR, kLineCast, true, false, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
 
-	Q->SetOverrideRange(550);
+	Q->SetOverrideRange(600);
 	W->SetOverrideRange(2500);
 	E->SetOverrideRange(750);
-	R->SetOverrideRange(3000);
+	R->SetOverrideRange(3500);
 
 	W->SetOverrideDelay(0.75);
 	E->SetOverrideDelay(0.25);
@@ -329,6 +333,7 @@ void Combo()
 			if (Player->IsValidTarget(target, Q->Range()))
 			{
 				Q->CastOnUnit(target);
+				GGame->PrintChat("cast q");
 			}
 		}
 	}
@@ -338,19 +343,22 @@ void Combo()
 		{
 			for (auto Enemys : GEntityList->GetAllHeros(false, true))
 			{
-				auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
+				auto target = Enemys;
 				if (Player->IsValidTarget(target, W->Range()))
 				{
 					AdvPredictionOutput prediction_output;
 					W->RunPrediction(target, true, kCollidesWithYasuoWall | kCollidesWithHeroes, &prediction_output);
-					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && ComboWcc->Enabled() &&!target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && ComboWcc->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
+						GGame->PrintChat("w buff");
 					}
-					if (!ChampionuseW[Enemys->GetNetworkId()]->Enabled() && ComboWcc->Enabled() && CountEnemiesInRange(1500) == 1 && prediction_output.HitChance >= kHitChanceHigh)
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !ComboWcc->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
-						W->CastOnTarget(target, kHitChanceHigh);
+						if (target->HasBuff("jhinespotteddebuff"))
+							W->CastOnTarget(target, kHitChanceHigh);
+						GGame->PrintChat("choose target, no buff w");
 					}
 				}
 			}
@@ -380,6 +388,7 @@ void Combo()
 				if (!target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 				{
 					E->CastOnTarget(target);
+					GGame->PrintChat("cast e");
 				}
 			}
 		}
@@ -398,6 +407,7 @@ void Combo()
 					if (Enemy->GetHealth() <= dmg && R->IsReady())
 					{
 						R->CastOnTarget(Enemy, kHitChanceHigh);
+						GGame->PrintChat("cast r");
 					}
 				}
 			}
@@ -406,19 +416,17 @@ void Combo()
 }
 void lasthit()
 {
-	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear)
+	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear || GOrbwalking->GetOrbwalkingMode() == kModeLastHit)
 	{
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
 		{
 			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()))
 			{
 				auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotQ);
-				if (lasthitQ->Enabled() && Q->IsReady())
+				if (lasthitQ->Enabled() && Q->IsReady() && minions->GetHealth() <= dmg)
 				{
-					if (GetDistance(Player, minions) > Player->GetRealAutoAttackRange(minions) && minions->GetHealth() <= dmg)
-					{
-						Q->CastOnUnit(minions);
-					}
+					Q->CastOnUnit(minions);
+					GGame->PrintChat("last hit q");
 				}
 			}
 		}
@@ -436,7 +444,7 @@ void lasthit()
 
 PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 {
-	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear)
+	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear || GOrbwalking->GetOrbwalkingMode() == kModeMixed)
 	{
 		int MinionDie = 0;
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
@@ -445,26 +453,34 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 			{
 				auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotQ);
 				auto dmg1 = GDamage->GetAutoAttackDamage(Player, minions, true);
-				if (!Player->GetRealAutoAttackRange(minions) || minions->GetHealth() <= dmg || minions->GetHealth() <= dmg1 || minions->GetHealth() <= dmg1 + dmg)
+				if (minions->GetHealth() <= dmg || minions->GetHealth() <= dmg1 || minions->GetHealth() <= dmg1 + dmg)
 					MinionDie++;
 
 				if (Player->ManaPercent() < FarmManaPercent->GetInteger())
 					return;
 				if (FarmQ->Enabled() && Q->IsReady())
 				{
-					if (MinionDie > 1)
-						Q->CastOnUnit(minions) || Q->LastHitMinion();
+					Q->CastOnUnit(minions);
+					GGame->PrintChat("lc  Q");
+						if (MinionDie > 1)
+						{
+							Q->LastHitMinion();
+							GGame->PrintChat("lc lasthit Q");
+						}
 				}
-				if (FarmW->Enabled() && W->IsReady())
+
+				/*if (FarmW->Enabled() && W->IsReady())
 				{
 					if (Player->IsValidTarget(minions, W->Range()));
 						W->CastOnUnit(minions) || W->LastHitMinion();
+						GGame->PrintChat("lc  w");
 				}
 				if (FarmE->Enabled() && E->IsReady())
 				{
 					if (Player->IsValidTarget(minions, E->Range()));
 					E->CastOnUnit(minions) || E->LastHitMinion();
-				}
+					GGame->PrintChat("lc  e");
+				}*/
 			}
 		}
 
@@ -477,10 +493,11 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
 					Q->CastOnUnit(jMinion);
+					GGame->PrintChat("jg q");
 				}
 			}
 		}
-		if (JungleW->Enabled() && W->IsReady())
+		/*if (JungleW->Enabled() && W->IsReady())
 		{
 			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
 			{
@@ -489,6 +506,7 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
 					W->CastOnTarget(jMinion);
+					GGame->PrintChat("jg  w");
 				}
 			}
 		}
@@ -501,22 +519,23 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 						return;
 					E->CastOnTarget(jMinion);
+					GGame->PrintChat("jg  e");
 				}
 			}
-		}
+		}*/
 	}
 }
 void Harass()
 {
 	if (Player->ManaPercent() < HarassManaPercent->GetInteger())
 		return;
-	if (HarassW->Enabled())
+	if (HarassQ->Enabled())
 	{
-		if (W->IsReady())
+		if (Q->IsReady())
 		{
-			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
-			if (Player->IsValidTarget(target, W->Range()))
-				W->CastOnTarget(target, kHitChanceHigh);
+			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range());
+			if (Player->IsValidTarget(target, Q->Range()))
+				Q->CastOnTarget(target, kHitChanceHigh);
 		}
 	}
 	if (HarassW->Enabled())
@@ -525,16 +544,19 @@ void Harass()
 		{
 			for (auto Enemys : GEntityList->GetAllHeros(false, true))
 			{
-				auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
+				auto target = Enemys;
 				if (Player->IsValidTarget(target, W->Range()))
 				{
-					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled())
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && HarassWcc->Enabled() && !target->IsInvulnerable())
 					{
+						if (target->HasBuff("jhinespotteddebuff"))
 						W->CastOnTarget(target, kHitChanceHigh);
+						GGame->PrintChat("harass w buff");
 					}
-					if (!ChampionuseW[Enemys->GetNetworkId()]->Enabled() && CountEnemiesInRange(1500) == 1)
+					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !HarassWcc->Enabled() && !target->IsInvulnerable())
 					{
 						W->CastOnTarget(target, kHitChanceHigh);
+						GGame->PrintChat("harass w");
 					}
 				}
 			}
@@ -557,6 +579,7 @@ void AutoImmobile()
 				if (GPrediction->GetCollisionFlagsForPoint(target->GetPosition()) == 0)
 				{
 					W->CastOnTarget(target, kHitChanceImmobile);
+					GGame->PrintChat("imbobile w");
 				}
 			}
 		}
@@ -570,6 +593,7 @@ void AutoImmobile()
 			{
 				{
 					E->CastOnTarget(target, kHitChanceImmobile);
+					GGame->PrintChat("imbobile e");
 				}
 			}
 		}
@@ -726,10 +750,14 @@ PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 		if (!Player->HasBuff("JhinRShot") && args.Sender->HasBuff("jhinespotteddebuff"))
 		{
 			W->CastOnPosition(args.EndPosition);
+			GGame->PrintChat("Gap w");
 		}
 		if (!Player->HasBuff("JhinRShot") && !args.Sender->HasBuff("jhinespotteddebuff") && GOrbwalking->CanAttack())
 		{
 			GGame->IssueOrder(Player, kAttackUnit, args.Sender);
+			GGame->PrintChat("Gap aa");
+			W->CastOnPosition(args.EndPosition);
+			GGame->PrintChat("Gap aaw");
 		}
 
 	}
@@ -739,6 +767,14 @@ PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 		&& (Player->GetPosition() - args.EndPosition).Length() < 250)
 	{
 		E->CastOnPosition(args.EndPosition);
+		GGame->PrintChat("Gap E");
+	}
+
+	auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+	if (Player->IsValidTarget(Enemy, E->Range()) && Enemy->IsChasing(Player) && Enemy->IsDashing() && Enemy != nullptr)
+	{
+		E->CastOnTarget(Enemy);
+		GGame->PrintChat("Gap dashing E");
 	}
 }
 

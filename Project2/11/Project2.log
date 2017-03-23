@@ -1,7 +1,7 @@
 ﻿  PluginSDK.cpp
   Xu Jhin.cpp
-Xu Jhin.cpp(202): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
-Xu Jhin.cpp(212): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
+Xu Jhin.cpp(204): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
+Xu Jhin.cpp(214): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
   正在生成代码...
     正在创建库 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Project2\11\Xu Jhin.lib 和对象 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Project2\11\Xu Jhin.exp
   Project2.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\Project2\11\Xu Jhin.dll
