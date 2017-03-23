@@ -14,10 +14,12 @@ IMenu* HarassMenu;
 IMenu* FarmMenu;
 IMenu* JungleMenu;
 IMenu* MiscMenu;
+//IMenu* SkinMenu;
 IMenu* FleeMenu;
 IMenu* Drawings;
 IMenu* ItemsMenu;
 IMenu* PotionMenu;
+IMenu* Credits;
 IMenuOption* SemiR;
 IMenuOption* UseIgnitecombo;
 IMenuOption* ComboQ;
@@ -61,6 +63,11 @@ IMenuOption* DrawQ;
 IMenuOption* DrawW;
 IMenuOption* DrawE;
 IMenuOption* DrawR;
+IMenuOption* Credits1;
+IMenuOption* Credits2;
+IMenuOption* Credits3;
+//IMenuOption* SkinID;
+//IMenuOption* USkin;
 
 IUnit* Player;
 
@@ -122,7 +129,7 @@ void  Menu()
 		ChampionuseW2[Enemys->GetNetworkId()] = HarassMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	HarassWcc = HarassMenu->CheckBox("Only Use W On Spotted Target", true);
-	HarassManaPercent = HarassMenu->AddInteger("Mana Percent for harass", 10, 100, 70);
+	HarassManaPercent = HarassMenu->AddInteger("Mana Percent for harass", 10, 100, 45);
 	Drawings = MainMenu->AddMenu("Drawings");
 
 	FarmMenu = MainMenu->AddMenu("LaneClear Setting");
@@ -130,16 +137,15 @@ void  Menu()
 	FarmW = FarmMenu->CheckBox("Use W Farm", false);
 	FarmE = FarmMenu->CheckBox("Use E Farm", true);
 	lasthitQ = FarmMenu->CheckBox("Try Use Q Lasthit", true);
-	FarmManaPercent = FarmMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
+	FarmManaPercent = FarmMenu->AddInteger("Mana Percent for Farm", 10, 100, 45);
 
 	JungleMenu = MainMenu->AddMenu("Jungle Setting");
 	JungleQ = JungleMenu->CheckBox("Use Q Jungle", true);
 	JungleW = JungleMenu->CheckBox("Use W Jungle", false);
 	JungleE = JungleMenu->CheckBox("Use E Jungle", true);
-	JungleManaPercent = JungleMenu->AddInteger("Mana Percent for Farm", 10, 100, 70);
+	JungleManaPercent = JungleMenu->AddInteger("Mana Percent for Farm", 10, 100, 45);
 
 	MiscMenu = MainMenu->AddMenu("Misc Setting");
-	//UseIgnitekillsteal = MiscMenu->CheckBox("Use Ignite to killsteal", false);
 	KillstealQ = MiscMenu->CheckBox("Use Q to killsteal", true);
 	KillstealW = MiscMenu->CheckBox("Use W to killsteal", true);
 	ImmobileW = MiscMenu->CheckBox("Use W in Immobile", true);
@@ -147,12 +153,12 @@ void  Menu()
 	AutoEGapcloser = MiscMenu->CheckBox("Use E to Gapclose", true);
 	AutoWGapcloser = MiscMenu->CheckBox("Use W to Gapclose", true);
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
-	AutoHeal = MiscMenu->CheckBox("Auto Heal", true);
-	MyHeal = MiscMenu->AddInteger("Use Heal When My Hp <", 10, 100, 35);
+	//AutoHeal = MiscMenu->CheckBox("Auto Heal", true);
+	//MyHeal = MiscMenu->AddInteger("Use Heal When My Hp <", 10, 100, 35);
 	//AutoHealT = MiscMenu->CheckBox("Auto Heal Teammate", true);
 
-	FleeMenu = MainMenu->AddMenu("Flee");
-	FleeKey = FleeMenu->AddKey("Flee Key", 74);
+	//FleeMenu = MainMenu->AddMenu("Flee");
+	//FleeKey = FleeMenu->AddKey("Flee Key", 74);
 
 	ItemsMenu = MainMenu->AddMenu("Items Setting");
 	Blade_Cutlass = ItemsMenu->CheckBox("Blade-Cutlass", true);
@@ -169,6 +175,16 @@ void  Menu()
 	DrawW = Drawings->CheckBox("Draw W", false);
 	DrawE = Drawings->CheckBox("Draw E", false);
 	DrawR = Drawings->CheckBox("Draw R", true);
+
+	Credits = MainMenu->AddMenu("Big Thanks To");
+	Credits1 = Drawings->CheckBox("Diabaths Template", true);
+	Credits2 = Drawings->CheckBox("Dewblackio2", true);
+	Credits3 = Drawings->CheckBox("Tsuhgi", true);
+
+
+	/*SkinMenu = MainMenu->AddMenu("Skin Hack");
+	USkin = SkinMenu->CheckBox("Use Skin Changer", true);
+	SkinID = SkinMenu->AddInteger("Skins", 1, 20, 9);*/
 }
 void LoadSpells()
 {
@@ -234,7 +250,6 @@ void LoadSpells()
 
 static bool InFountain(IUnit *unit)
 {
-	//TODO: Implement
 	return unit->HasBuff("kappachino");
 }
 
@@ -632,7 +647,7 @@ void killsteal()
 				{
 					if (Enemy->GetHealth() <= dmg && Q->IsReady())
 					{
-						Q->CastOnTarget(Enemy);
+						Q->CastOnUnit(Enemy);
 					}
 				}
 			}
@@ -707,13 +722,17 @@ void AutoQss()
 	}
 }
 
-void AHeal()
+/*void AHeal()
 {
-	if (AutoHeal->Enabled() && !Player->IsRecalling() && EnemiesInRange(Player, 550) && Player->HealthPercent() < MyHeal->GetInteger())
+	auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+	if (AutoHeal->Enabled() && !InFountain(Player) && !Player->IsRecalling() && Player->IsValidTarget(Enemy, 650) && Player->HealthPercent() < MyHeal->GetInteger())
 	{
-		Heal->CastOnPlayer();
+		if (Heal->IsReady())
+		{
+			Heal->CastOnPlayer();
+		}
 	}
-}
+}*/
 
 /*void Flee()
 {
@@ -752,12 +771,20 @@ PLUGIN_EVENT(void) OnRender()
 	}
 }
 
-/*void SkinChanger()
+/*void SkinHack()
 {
-if (myHero->GetSkinId() != ChangeSkin->GetInteger())
-{
-myHero->SetSkinId(ChangeSkin->GetInteger());
-}
+	if (USkin->Enabled())
+	{
+		if (GEntityList->Player()->GetSkinId() != SkinID->GetInteger())
+		{
+			GEntityList->Player()->SetSkinId(SkinID->GetInteger());
+		}
+
+	}
+	else
+	{
+		GEntityList->Player()->SetSkinId(GEntityList->Player()->GetSkinId());
+	}
 }*/
 
 PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
@@ -825,7 +852,8 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	UseItems();
 	Usepotion();
 	AutoQss();
-	AHeal();
+	//AHeal();
+	//SkinHack;
 	if (IsKeyDown(ComboR) && ComboR->Enabled() && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
 		IUnit *rTarget = GTargetSelector->FindTarget(QuickestKill, SpellDamage, RRange->GetInteger());
@@ -854,7 +882,7 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	GEventManager->AddEventHandler(kEventOnGapCloser, OnGapcloser);
 	if (strcmp(GEntityList->Player()->ChampionName(), "Jhin") == 0)
 	{
-		GGame->PrintChat("<b><font color = \"#f8a101\">Xiao Jhin</font><font color=\"#7FFF00\"> - Loaded</font></b>");
+		GGame->PrintChat("<b><font color = \"#F535AA\">Xiao Jhin</font><font color=\"#4EE2EC\"> - Loaded</font></b>");
 	}
 	else
 	{
