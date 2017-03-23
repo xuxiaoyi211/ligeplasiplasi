@@ -3,7 +3,7 @@
 //auto heal, auto trinket
 //no q, W fix,auto w?,r no use,last hit q , q hit range + 300 then q target,flee,w gap close aa work?,heal problem
 
-//3/23 lc, jg, heal, last hit q
+//3/23 lc, jg, heal, last hit q,r,harass w no target tick still use w
 PluginSetup("Xu Jhin");
 
 IMenu* MainMenu;
@@ -446,6 +446,23 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 {
 	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear || GOrbwalking->GetOrbwalkingMode() == kModeMixed)
 	{
+		int MinionAround = 0;
+		for (auto minions : GEntityList->GetAllMinions(false, true, false))
+		{
+			if (minions->IsValidTarget(Player, Q->Range()))
+				MinionAround++;
+			if (Player->ManaPercent() < FarmManaPercent->GetInteger())
+				return;
+			if (FarmQ->Enabled() && Q->IsReady())
+			{
+				if (MinionAround > 3)
+					Q->CastOnUnit(minions);
+				GGame->PrintChat("lc q 3");
+			}
+		}
+	}
+	if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear || GOrbwalking->GetOrbwalkingMode() == kModeMixed || GOrbwalking->GetOrbwalkingMode() == kModeLastHit)
+	{
 		int MinionDie = 0;
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
 		{
@@ -458,21 +475,17 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 
 				if (Player->ManaPercent() < FarmManaPercent->GetInteger())
 					return;
-				if (FarmQ->Enabled() && Q->IsReady())
+				if (Q->IsReady() && lasthitQ->Enabled())
 				{
-					Q->CastOnUnit(minions);
-					GGame->PrintChat("lc  Q");
-						if (MinionDie > 1)
-						{
-							Q->LastHitMinion();
-							GGame->PrintChat("lc lasthit Q");
-						}
+					if (MinionDie > 1)
+						Q->CastOnUnit(minions) || Q->LastHitMinion();
+					GGame->PrintChat("lc q | ls q");
 				}
 
-				/*if (FarmW->Enabled() && W->IsReady())
+				if (FarmW->Enabled() && W->IsReady())
 				{
 					if (Player->IsValidTarget(minions, W->Range()));
-						W->CastOnUnit(minions) || W->LastHitMinion();
+						W->CastOnTarget(minions) || W->LastHitMinion();
 						GGame->PrintChat("lc  w");
 				}
 				if (FarmE->Enabled() && E->IsReady())
@@ -480,10 +493,12 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					if (Player->IsValidTarget(minions, E->Range()));
 					E->CastOnUnit(minions) || E->LastHitMinion();
 					GGame->PrintChat("lc  e");
-				}*/
+				}
 			}
 		}
-
+	}
+	//jg
+	/*{
 		if (JungleQ->Enabled() && Q->IsReady())
 		{
 			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
@@ -496,7 +511,7 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					GGame->PrintChat("jg q");
 				}
 			}
-		}
+		}*/
 		/*if (JungleW->Enabled() && W->IsReady())
 		{
 			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
@@ -509,8 +524,8 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 					GGame->PrintChat("jg  w");
 				}
 			}
-		}
-		if (JungleE->Enabled() && E->IsReady())
+		}*/
+		/*if (JungleE->Enabled() && E->IsReady())
 		{
 			for (auto jMinion : GEntityList->GetAllMinions(false, false, true))
 			{
@@ -523,7 +538,6 @@ PLUGIN_EVENT(void) OnAfterAttack(IUnit* source, IUnit* target)
 				}
 			}
 		}*/
-	}
 }
 void Harass()
 {
