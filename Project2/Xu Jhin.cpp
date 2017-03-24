@@ -351,7 +351,7 @@ void Combo()
 			if (Player->IsValidTarget(target, Q->Range()))
 			{
 				Q->CastOnUnit(target);
-				GGame->PrintChat("cast q");
+				//GGame->PrintChat("cast q");
 			}
 		}
 	}
@@ -370,13 +370,13 @@ void Combo()
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
-						GGame->PrintChat("w buff");
+						//GGame->PrintChat("w buff");
 					}
 					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !ComboWcc->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
-						GGame->PrintChat("choose target, no buff w");
+						//GGame->PrintChat("choose target, no buff w");
 					}
 				}
 			}
@@ -406,7 +406,7 @@ void Combo()
 				if (!target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 				{
 					E->CastOnTarget(target);
-					GGame->PrintChat("cast e");
+					//GGame->PrintChat("cast e");
 				}
 			}
 		}
@@ -425,7 +425,7 @@ void Combo()
 					if (Enemy->GetHealth() <= dmg && R->IsReady())
 					{
 						R->CastOnTarget(Enemy, kHitChanceHigh);
-						GGame->PrintChat("cast r");
+						//GGame->PrintChat("cast r");
 					}
 				}
 			}
@@ -444,7 +444,7 @@ void lasthitq()
 				if (lasthitQ->Enabled() && Q->IsReady() && minions->GetHealth() <= dmg)
 				{
 					Q->CastOnUnit(minions);
-					GGame->PrintChat("last hit q");
+					//GGame->PrintChat("last hit q");
 				}
 			}
 		}
@@ -491,12 +491,12 @@ void Harass()
 					{
 						if (target->HasBuff("jhinespotteddebuff"))
 						W->CastOnTarget(target, kHitChanceHigh);
-						GGame->PrintChat("harass w buff");
+						//GGame->PrintChat("harass w buff");
 					}
 					if (ChampionuseW2[Enemys->GetNetworkId()]->Enabled() && !HarassWcc->Enabled() && !target->IsInvulnerable())
 					{
 						W->CastOnTarget(target, kHitChanceHigh);
-						GGame->PrintChat("harass w");
+						//GGame->PrintChat("harass w");
 					}
 				}
 			}
@@ -517,7 +517,7 @@ void laneclear()
 		{
 			if (MinionAround > 3)
 				Q->CastOnUnit(minions);
-			GGame->PrintChat("lc q 3");
+			//GGame->PrintChat("lc q 3");
 		}
 	}
 	int MinionDie = 0;
@@ -536,20 +536,20 @@ void laneclear()
 			{
 				if (MinionDie > 1)
 					Q->CastOnUnit(minions) || Q->LastHitMinion();
-				GGame->PrintChat("lc q | ls q");
+				//GGame->PrintChat("lc q | ls q");
 			}
 
 			if (FarmW->Enabled() && W->IsReady())
 			{
 				if (Player->IsValidTarget(minions, W->Range()));
 				W->CastOnTarget(minions) || W->LastHitMinion();
-				GGame->PrintChat("lc  w");
+				//GGame->PrintChat("lc  w");
 			}
 			if (FarmE->Enabled() && E->IsReady())
 			{
 				if (Player->IsValidTarget(minions, E->Range()));
 				E->CastOnUnit(minions) || E->LastHitMinion();
-				GGame->PrintChat("lc  e");
+				//GGame->PrintChat("lc  e");
 			}
 		}
 	}
@@ -566,7 +566,7 @@ void jungleclear()
 				if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 					return;
 				Q->CastOnUnit(jMinion);
-				GGame->PrintChat("jg q");
+				//GGame->PrintChat("jg q");
 			}
 		}
 	}
@@ -579,7 +579,7 @@ void jungleclear()
 				if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 					return;
 				W->CastOnTarget(jMinion);
-				GGame->PrintChat("jg  w");
+				//GGame->PrintChat("jg  w");
 			}
 		}
 	}
@@ -592,7 +592,7 @@ void jungleclear()
 				if (Player->ManaPercent() < JungleManaPercent->GetInteger())
 					return;
 				E->CastOnTarget(jMinion);
-				GGame->PrintChat("jg  e");
+				//GGame->PrintChat("jg  e");
 			}
 		}
 	}
@@ -613,7 +613,7 @@ void AutoImmobile()
 				if (GPrediction->GetCollisionFlagsForPoint(target->GetPosition()) == 0)
 				{
 					W->CastOnTarget(target, kHitChanceImmobile);
-					GGame->PrintChat("imbobile w");
+					//GGame->PrintChat("imbobile w");
 				}
 			}
 		}
@@ -627,7 +627,7 @@ void AutoImmobile()
 			{
 				{
 					E->CastOnTarget(target, kHitChanceImmobile);
-					GGame->PrintChat("imbobile e");
+					//GGame->PrintChat("imbobile e");
 				}
 			}
 		}
@@ -796,14 +796,14 @@ PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 		if (!Player->HasBuff("JhinRShot") && args.Sender->HasBuff("jhinespotteddebuff"))
 		{
 			W->CastOnPosition(args.EndPosition);
-			GGame->PrintChat("Gap w");
+			//GGame->PrintChat("Gap w");
 		}
 		if (!Player->HasBuff("JhinRShot") && !args.Sender->HasBuff("jhinespotteddebuff") && GOrbwalking->CanAttack())
 		{
 			GGame->IssueOrder(Player, kAttackUnit, args.Sender);
-			GGame->PrintChat("Gap aa");
+			//GGame->PrintChat("Gap aa");
 			W->CastOnPosition(args.EndPosition);
-			GGame->PrintChat("Gap aaw");
+			//GGame->PrintChat("Gap aaw");
 		}
 
 	}
@@ -813,14 +813,14 @@ PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 		&& (Player->GetPosition() - args.EndPosition).Length() < 250)
 	{
 		E->CastOnPosition(args.EndPosition);
-		GGame->PrintChat("Gap E");
+		//GGame->PrintChat("Gap E");
 	}
 
 	auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
 	if (Player->IsValidTarget(Enemy, E->Range()) && Enemy->IsChasing(Player) && Enemy->IsDashing() && Enemy != nullptr)
 	{
 		E->CastOnTarget(Enemy);
-		GGame->PrintChat("Gap dashing E");
+		//GGame->PrintChat("Gap dashing E");
 	}
 }
 
