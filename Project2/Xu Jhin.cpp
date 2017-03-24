@@ -19,6 +19,7 @@ IMenu* FleeMenu;
 IMenu* Drawings;
 IMenu* ItemsMenu;
 IMenu* PotionMenu;
+IMenu* Check;
 IMenu* Credits;
 IMenuOption* SemiR;
 IMenuOption* UseIgnitecombo;
@@ -63,6 +64,7 @@ IMenuOption* DrawQ;
 IMenuOption* DrawW;
 IMenuOption* DrawE;
 IMenuOption* DrawR;
+IMenuOption* CheckUpdate;
 IMenuOption* Credits1;
 IMenuOption* Credits2;
 IMenuOption* Credits3;
@@ -177,9 +179,9 @@ void  Menu()
 	DrawR = Drawings->CheckBox("Draw R", true);
 
 	Credits = MainMenu->AddMenu("Big Thanks To");
-	Credits1 = Drawings->CheckBox("Diabaths Template", true);
-	Credits2 = Drawings->CheckBox("Dewblackio2", true);
-	Credits3 = Drawings->CheckBox("Tsuhgi", true);
+	Credits1 = Credits->CheckBox("Diabaths Template", true);
+	Credits2 = Credits->CheckBox("Dewblackio2", true);
+	Credits3 = Credits->CheckBox("Tsuhgi", true);
 
 
 	/*SkinMenu = MainMenu->AddMenu("Skin Hack");
@@ -787,6 +789,10 @@ PLUGIN_EVENT(void) OnRender()
 	}
 }*/
 
+/*void version()
+{
+
+}*/
 PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 {
 	if (args.Sender != nullptr && args.Sender != Player && Player->IsValidTarget(args.Sender, W->Range())
@@ -888,6 +894,10 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	{
 		GGame->PrintChat("This plugin is for Jhin");
 	}
+	/*if (CheckUpdate->Enable())
+	{
+		version();
+	}*/
 }
 
 
