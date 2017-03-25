@@ -482,7 +482,7 @@ void UseR()
 
 void trinket()
 {
-	if (Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady())
+	if (UseTrinket->Enabled() && Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady())
 	{
 		for (auto Enemys : GEntityList->GetAllHeros(false, true))
 		{
@@ -705,37 +705,31 @@ void AutoImmobile()
 void killsteal()
 {
 	if (GGame->IsChatOpen()) return;
-	for (auto Enemy : GEntityList->GetAllHeros(false, true))
+	auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, E->Range());
+	if (target != nullptr && !target->IsDead())
 	{
-		if (Enemy != nullptr && !Enemy->IsDead())
+		if (Player->IsValidTarget(target, Q->Range()) && !target->IsInvulnerable())
 		{
-			if (KillstealQ->Enabled())
+			if (Q->IsReady() && target->GetHealth() <= GDamage->GetSpellDamage(GEntityList->Player(), target, kSlotQ))
 			{
-				//auto dmg = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
-				if (Player->IsValidTarget(Enemy, Q->Range()) && !Enemy->IsInvulnerable())
-				{
-					if (Q->IsReady() && Enemy->GetHealth() <= GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ))
-					{
-						Q->CastOnUnit(Enemy);
-					}
-				}
-			}
-		}
-		if (Enemy != nullptr && !Enemy->IsDead())
-		{
-			if (KillstealW->Enabled())
-			{
-				//auto dmg = GDamage->GetSpellDamage(Player, Enemy, kSlotW);
-				if (Player->IsValidTarget(Enemy, W->Range()) && !Enemy->IsInvulnerable())
-				{
-					if (Enemy->GetHealth() <= GDamage->GetSpellDamage(Player, Enemy, kSlotW) && W->IsReady())
-					{
-						W->CastOnTarget(Enemy, 4);
-					}
-				}
+				Q->CastOnUnit(target);
 			}
 		}
 	}
+		if (target != nullptr && !target->IsDead())
+		{
+			if (KillstealW->Enabled())
+			{
+				auto dmg = GDamage->GetSpellDamage(Player, target, kSlotW);
+				if (Player->IsValidTarget(target, W->Range()) && !target->IsInvulnerable())
+				{
+					if (target->GetHealth() <= dmg && W->IsReady())
+					{
+						W->CastOnTarget(target, 4);
+					}
+				}
+			}
+		}
 }
 
 void Usepotion()
