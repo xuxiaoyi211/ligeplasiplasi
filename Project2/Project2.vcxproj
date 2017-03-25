@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='11|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\L++\sdk\League++ SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\L++\IExtension;D:\L++\IPlugin;D:\L++\sdk\League++ SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -1,5 +1,11 @@
 #include "PluginSDK.h"
+#include "Plugin.h"
+#include "Extension.h"
 #include <map>
+char* Author = "Xuxiaoyi211";
+char* Champion = "Jhin";
+char* Plugin = "Xu Jhin";
+int Version = 1.1;
 //auto heal, auto trinket
 //no q, W fix,auto w?,r no use,last hit q , q hit range + 300 then q target,flee,w gap close aa work?,heal problem
 
@@ -19,7 +25,7 @@ IMenu* FleeMenu;
 IMenu* Drawings;
 IMenu* ItemsMenu;
 IMenu* PotionMenu;
-IMenu* Check;
+IMenu* TrinketMenu;
 IMenu* Credits;
 IMenuOption* SemiR;
 IMenuOption* UseIgnitecombo;
@@ -64,7 +70,7 @@ IMenuOption* DrawQ;
 IMenuOption* DrawW;
 IMenuOption* DrawE;
 IMenuOption* DrawR;
-IMenuOption* CheckUpdate;
+IMenuOption* UseTrinket;
 IMenuOption* Credits1;
 IMenuOption* Credits2;
 IMenuOption* Credits3;
@@ -93,10 +99,15 @@ IInventoryItem* RefillPot;
 IInventoryItem* hunter;
 IInventoryItem* Mersci; 
 IInventoryItem* QuickSiv; 
+IInventoryItem* Trinket;
+IInventoryItem* Yellow;
 
 //std::map<int, IMenuOption*> ChampionuseQ;
 std::map<int, IMenuOption*> ChampionuseW;
 std::map<int, IMenuOption*> ChampionuseW2;
+std::map<int, IMenuOption*> ChampionuseR;
+std::map<int, IMenuOption*> ChampionuseTrinket;
+
 
 static bool IsKeyDown(IMenuOption* menuOption)
 {
@@ -120,6 +131,11 @@ void  Menu()
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
+	for (auto Enemys : GEntityList->GetAllHeros(false, true))
+	{
+		std::string szMenuName = "Use R on - " + std::string(Enemys->ChampionName());
+		ChampionuseR[Enemys->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
+	}
 	RRange = ComboMenu->AddInteger("R Search Range", 0, 3500, 3500);
 
 	HarassMenu = MainMenu->AddMenu("Harass Setting");
@@ -177,6 +193,14 @@ void  Menu()
 	DrawW = Drawings->CheckBox("Draw W", false);
 	DrawE = Drawings->CheckBox("Draw E", false);
 	DrawR = Drawings->CheckBox("Draw R", true);
+
+	TrinketMenu = MainMenu->AddMenu("Auto Trinket");
+	UseTrinket = TrinketMenu->CheckBox("Enable Trinket",true);
+		for (auto Enemys : GEntityList->GetAllHeros(false, true))
+		{
+			std::string szMenuName = "Use Trinket on - " + std::string(Enemys->ChampionName());
+			ChampionuseTrinket[Enemys->GetNetworkId()] = TrinketMenu->CheckBox(szMenuName.c_str(), false);
+		}
 
 	Credits = MainMenu->AddMenu("Big Thanks To");
 	Credits1 = Credits->CheckBox("Diabaths Template", true);
@@ -248,6 +272,8 @@ void LoadSpells()
 	RefillPot = GPluginSDK->CreateItemForId(2031, 0);
 	Biscuit = GPluginSDK->CreateItemForId(2010, 0);
 	hunter = GPluginSDK->CreateItemForId(2032, 0);
+	Trinket = GPluginSDK->CreateItemForId(3363, 4000);
+	Yellow = GPluginSDK->CreateItemForId(3340, 600);
 }
 
 static bool InFountain(IUnit *unit)
@@ -433,6 +459,47 @@ void Combo()
 			}
 		}
 	}
+}
+
+void UseR()
+{
+	if (IsKeyDown(ComboR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
+	{
+		for (auto Enemys : GEntityList->GetAllHeros(false, true))
+		{
+			auto target = Enemys;
+			if (target != nullptr && ChampionuseR[Enemys->GetNetworkId()]->Enabled() && !target->IsInvulnerable() && Player->IsValidTarget(target, RRange->GetInteger()))
+			{
+				R->CastOnTarget(target, 5);
+				//GGame->PrintChat("use r on");
+			}
+			if (!ChampionuseR[Enemys->GetNetworkId()]->Enabled() && !target->IsInvulnerable())
+			{
+				return;
+			}
+		}
+	}}
+
+void trinket()
+{
+	if (Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady())
+	{
+		for (auto Enemys : GEntityList->GetAllHeros(false, true))
+		{
+			auto target = Enemys;
+			if (target != nullptr && ChampionuseTrinket[Enemys->GetNetworkId()]->Enabled() && Player->IsValidTarget(target, RRange->GetInteger()))
+			{
+				if (!target->IsVisible())
+				{
+					Trinket->CastOnPosition(target->GetPosition());
+					GGame->PrintChat("use blue trinket");
+					Yellow->CastOnPosition(target->GetPosition());
+					GGame->PrintChat("use yellow trinket");
+				}
+			}
+		}
+	}
+
 }
 void lasthitq()
 {
@@ -644,23 +711,26 @@ void killsteal()
 		{
 			if (KillstealQ->Enabled())
 			{
-				auto dmg = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
+				//auto dmg = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
 				if (Player->IsValidTarget(Enemy, Q->Range()) && !Enemy->IsInvulnerable())
 				{
-					if (Enemy->GetHealth() <= dmg && Q->IsReady())
+					if (Q->IsReady() && Enemy->GetHealth() <= GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ))
 					{
 						Q->CastOnUnit(Enemy);
 					}
 				}
 			}
+		}
+		if (Enemy != nullptr && !Enemy->IsDead())
+		{
 			if (KillstealW->Enabled())
 			{
-				auto dmg = GDamage->GetSpellDamage(Player, Enemy, kSlotW);
+				//auto dmg = GDamage->GetSpellDamage(Player, Enemy, kSlotW);
 				if (Player->IsValidTarget(Enemy, W->Range()) && !Enemy->IsInvulnerable())
 				{
-					if (Enemy->GetHealth() <= dmg && W->IsReady())
+					if (Enemy->GetHealth() <= GDamage->GetSpellDamage(Player, Enemy, kSlotW) && W->IsReady())
 					{
-						W->CastOnTarget(Enemy, kHitChanceHigh);
+						W->CastOnTarget(Enemy, 4);
 					}
 				}
 			}
@@ -858,16 +928,18 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	UseItems();
 	Usepotion();
 	AutoQss();
+	UseR();
+	trinket();
 	//AHeal();
 	//SkinHack;
-	if (IsKeyDown(ComboR) && ComboR->Enabled() && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
+	/*if (IsKeyDown(ComboR) && ComboR->Enabled() && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
 		IUnit *rTarget = GTargetSelector->FindTarget(QuickestKill, SpellDamage, RRange->GetInteger());
 		if (rTarget != nullptr && rTarget && !Player->IsValidTarget(rTarget, Q->Range()))
 		{
 			R->CastOnTarget(rTarget, 5);
 		}
-	}
+	}*/
 
 /*	if (FleeJ())
 	{
@@ -878,6 +950,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 {
 	PluginSDKSetup(PluginSDK);
+	//GPlugin = new IPlugin(Author, Plugin, Version);
 	Menu();
 	LoadSpells();
 	Player = GEntityList->Player();
@@ -886,6 +959,7 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	GEventManager->AddEventHandler(kEventOnRender, OnRender);
 	GEventManager->AddEventHandler(kEventOrbwalkAfterAttack, OnAfterAttack);
 	GEventManager->AddEventHandler(kEventOnGapCloser, OnGapcloser);
+	//GExtension->CheckVersion(GPlugin->GetName(), GPlugin->GetVersion());
 	if (strcmp(GEntityList->Player()->ChampionName(), "Jhin") == 0)
 	{
 		GGame->PrintChat("<b><font color = \"#F535AA\">Xiao Jhin</font><font color=\"#4EE2EC\"> - Loaded</font></b>");
