@@ -6,6 +6,7 @@ char* Author = "Xuxiaoyi211";
 char* Champion = "Jhin";
 char* Plugin = "Xu Jhin";
 int Version = 1.1;
+
 //auto heal, auto trinket
 //no q, W fix,auto w?,r no use,last hit q , q hit range + 300 then q target,flee,w gap close aa work?,heal problem
 
@@ -373,7 +374,7 @@ void Combo()
 
 	if (ComboQ->Enabled())
 	{
-		if (Q->IsReady())
+		if (Q->IsReady() || Player->HasBuff("JhinPassiveReload"))
 		{
 			auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range());
 			if (Player->IsValidTarget(target, Q->Range()))
@@ -482,7 +483,7 @@ void UseR()
 
 void trinket()
 {
-	if (UseTrinket->Enabled() && Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady())
+	if (UseTrinket->Enabled() && (Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady()))
 	{
 		for (auto Enemys : GEntityList->GetAllHeros(false, true))
 		{
@@ -507,7 +508,7 @@ void lasthitq()
 	{
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
 		{
-			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()))
+			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()) || Player->HasBuff("JhinPassiveReload"))
 			{
 				auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotQ);
 				if (lasthitQ->Enabled() && Q->IsReady() && minions->GetHealth() <= dmg)
@@ -538,7 +539,7 @@ void Harass()
 {
 	if (Player->ManaPercent() < HarassManaPercent->GetInteger())
 		return;
-	if (HarassQ->Enabled())
+	if (HarassQ->Enabled() || Player->HasBuff("JhinPassiveReload"))
 	{
 		if (Q->IsReady())
 		{
@@ -704,9 +705,8 @@ void AutoImmobile()
 }
 void killsteal()
 {
-	if (GGame->IsChatOpen()) return;
-	auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, E->Range());
-	if (target != nullptr && !target->IsDead())
+	auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, Q->Range());
+	if (KillstealQ->Enabled() && target != nullptr && !target->IsDead())
 	{
 		if (Player->IsValidTarget(target, Q->Range()) && !target->IsInvulnerable())
 		{
@@ -716,17 +716,15 @@ void killsteal()
 			}
 		}
 	}
-		if (target != nullptr && !target->IsDead())
+
+	if (KillstealW->Enabled() && target != nullptr && !target->IsDead())
 		{
-			if (KillstealW->Enabled())
+			auto dmg = GDamage->GetSpellDamage(Player, target, kSlotW);
+			if (Player->IsValidTarget(target, W->Range()) && !target->IsInvulnerable())
 			{
-				auto dmg = GDamage->GetSpellDamage(Player, target, kSlotW);
-				if (Player->IsValidTarget(target, W->Range()) && !target->IsInvulnerable())
+				if (target->GetHealth() <= dmg && W->IsReady())
 				{
-					if (target->GetHealth() <= dmg && W->IsReady())
-					{
-						W->CastOnTarget(target, 4);
-					}
+					W->CastOnTarget(target, 4);
 				}
 			}
 		}
@@ -944,6 +942,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 {
 	PluginSDKSetup(PluginSDK);
+
 	//GPlugin = new IPlugin(Author, Plugin, Version);
 	Menu();
 	LoadSpells();
