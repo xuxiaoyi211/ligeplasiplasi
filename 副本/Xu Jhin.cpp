@@ -199,7 +199,7 @@ void  Menu()
 	DrawR = Drawings->CheckBox("Draw R", true);
 
 	TrinketMenu = MainMenu->AddMenu("Auto Trinket");
-	UseTrinket = TrinketMenu->CheckBox("Enable Trinket", true);
+	UseTrinket = TrinketMenu->CheckBox("Enable Combo Trinket", true);
 	for (auto Enemys : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "Use Trinket on - " + std::string(Enemys->ChampionName());
@@ -475,22 +475,23 @@ void trinket()
 {
 	if (UseTrinket->Enabled() && (Trinket->IsOwned() && Trinket->IsReady() || Yellow->IsOwned() && Yellow->IsReady()))
 	{
-		for (auto Enemys : GEntityList->GetAllHeros(false, true))
+		auto Enemys = GEntityList->GetAllHeros(false, true);
+
+		for (auto target : Enemys)
 		{
-			auto target = Enemys;
-			if (target != nullptr && ChampionuseTrinket[Enemys->GetNetworkId()]->Enabled() && Player->IsValidTarget(target, RRange->GetInteger()))
-			{
-				if (!target->IsVisible())
-				{
-					Trinket->CastOnPosition(target->GetPosition());
+			auto lastPos = target->GetPosition();
+			if (!target->IsVisible())
+			{ 
+				if (ChampionuseTrinket[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - lastPos).Length2D() <= RRange->GetInteger())
+				{ 
+					Trinket->CastOnPosition(lastPos);
 					GGame->PrintChat("use blue trinket");
-					Yellow->CastOnPosition(target->GetPosition());
+					Yellow->CastOnPosition(lastPos);
 					GGame->PrintChat("use yellow trinket");
 				}
 			}
 		}
 	}
-
 }
 void lasthitq()
 {
@@ -897,6 +898,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	if (GOrbwalking->GetOrbwalkingMode() == kModeCombo)
 	{
 		Combo();
+		trinket();
 	}
 
 	if (GOrbwalking->GetOrbwalkingMode() == kModeLastHit)
@@ -921,7 +923,6 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	Usepotion();
 	AutoQss();
 	UseR();
-	trinket();
 	AHeal();
 	//SkinHack;
 	/*if (IsKeyDown(ComboR) && ComboR->Enabled() && GEntityList->Player()->GetSpellState(kSlotR) == Ready)

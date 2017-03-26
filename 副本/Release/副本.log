@@ -4,12 +4,11 @@ Xu Jhin.cpp(9): warning C4244: “初始化”: 从“double”转换到“int�
 Xu Jhin.cpp(233): warning C4305: “参数”: 从“double”到“float”截断
 Xu Jhin.cpp(458): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
 Xu Jhin.cpp(461): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Xu Jhin.cpp(481): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Xu Jhin.cpp(823): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Xu Jhin.cpp(834): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(824): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(835): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
     正在创建库 C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.lib 和对象 C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.exp
   正在生成代码
-  All 312 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 313 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   已完成代码的生成
   副本.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.dll
   副本.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.pdb (Full PDB)
