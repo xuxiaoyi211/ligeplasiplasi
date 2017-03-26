@@ -1,0 +1,17 @@
+﻿  PluginSDK.cpp
+  Xu Jhin.cpp
+Xu Jhin.cpp(9): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+Xu Jhin.cpp(231): warning C4305: “参数”: 从“double”到“float”截断
+Xu Jhin.cpp(456): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(459): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(479): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(811): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Jhin.cpp(822): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+    正在创建库 C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.lib 和对象 C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.exp
+  正在生成代码
+  312 of 312 functions (100.0%) were compiled, the rest were copied from previous compilation.
+    9 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  副本.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.dll
+  副本.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\副本\Release\Xu Jhin.pdb (Full PDB)
