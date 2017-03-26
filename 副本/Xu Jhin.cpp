@@ -14,6 +14,8 @@ int Version = 1.1;
 //3/23 lc, jg, heal, last hit q,r,harass w no target tick still use w
 
 //3/24 heal issue
+
+//3/25 R fouced target, AA,W gap close, trinket
 PluginSetup("Xu Jhin");
 
 IMenu* MainMenu;
@@ -777,13 +779,23 @@ void AutoQss()
 void AHeal()
 {
 	auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
-	if (AutoHeal->Enabled() && !InFountain(Player) && !Player->IsRecalling() && Player->IsValidTarget(Enemy, 650) && Player->HealthPercent() < MyHeal->GetInteger())
+	if (AutoHeal->Enabled() && Player->IsValidTarget(Enemy, 650) && Player->HealthPercent() < MyHeal->GetInteger())
 	{
 		if (Heal->IsReady())
 		{
 			Heal->CastOnPlayer();
 		}
 	}
+//utiltyti ++
+		/*if (HealTeamateActive->Enabled())
+		{
+			auto Teamates = GEntityList->GetAllHeros(true, false);
+			for (IUnit* Teamate : Teamates)
+			{
+				if (!(Teamate->IsDead()) && GetDistance(Hero, Teamate) <= HEAL->GetSpellRange() && Teamate->HealthPercent() <= HealTeamatePercent->GetInteger() && EnemiesInRange(Teamate, 600) > 0) { HEAL->CastOnUnit(Teamate); } //Cast on injured teamate
+			}
+		}
+	}*/
 }
 
 /*void Flee()
