@@ -484,10 +484,7 @@ void trinket()
 			{ 
 				if (ChampionuseTrinket[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - lastPos).Length2D() <= RRange->GetInteger())
 				{ 
-					Trinket->CastOnPosition(lastPos);
-					GGame->PrintChat("use blue trinket");
-					Yellow->CastOnPosition(lastPos);
-					GGame->PrintChat("use yellow trinket");
+					Trinket->CastOnPosition(lastPos)||Yellow->CastOnPosition(lastPos);
 				}
 			}
 		}
