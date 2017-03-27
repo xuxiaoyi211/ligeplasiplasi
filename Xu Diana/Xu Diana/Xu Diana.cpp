@@ -728,19 +728,19 @@ void  Menu()
 				}
 			}
 
-			auto Enemys = GEntityList->GetAllHeros(false, true);
-			//auto Enemys = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+			//auto Enemys = GEntityList->GetAllHeros(false, true);
+			auto Enemys = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
 			{
 				for (auto target : Enemys)
 				{
 					auto CurrentPos = target->GetPosition();
 					if (target != nullptr && Player->IsValidTarget(target, Q->Range()))
 					{
-						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() == ERange->GetInteger())
+						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
 						{
 							E->CastOnPlayer();
 						}
-						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() == ERange->GetInteger())
+						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
 						{
 							R->CastOnTarget(target);
 						}
