@@ -7,10 +7,15 @@
 // Need R safty Check?
 // Chase Combo, save R and E, use GTargetSelector?
 // Auto E with X Enemys?
+
+//3/28:
+//add ordwalk to flee and chasecombo and misaya
+//fix kill steal
+//test gap close
 char* Author = "Xu211";
 char* Champion = "Diana";
 char* Plugin = "Xu Diana";
-int Version = 1.1;
+int Version = 1.0;
 
 PluginSetup("Xu Diana");
 
@@ -33,6 +38,7 @@ IMenuOption* ComboW;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* ComboRB;
+IMenuOption* UseMisaCombo;
 IMenuOption* ComboMisa;
 IMenuOption* UseIgnitecombo;
 
@@ -41,6 +47,8 @@ IMenuOption* ChaseQ;
 IMenuOption* ERange;
 IMenuOption* RRange;
 IMenuOption* Note;
+IMenuOption* Note2;
+IMenuOption* NoteER;
 
 IMenuOption* HarassQ;
 IMenuOption* HarassW;
@@ -128,20 +136,25 @@ void  Menu()
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	ComboR = ComboMenu->CheckBox("Use R", true);
 	ComboRB = ComboMenu->CheckBox("Only R Moonlight Target", true);
-	ComboMisa = ComboMenu->AddKey("Misaya Key", 84);
+	Note2 = ComboMenu->CheckBox("^ Low ping, Untick will be misaya", true);
+	UseMisaCombo = ComboMenu->CheckBox("Enable Misaya Combo", true);
+	/*ComboMisa = ComboMenu->AddKey("Misaya Combo Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "Use Misaya Combo On - " + std::string(Enemy->ChampionName());
 		ChampionuseRQ[Enemy->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
-	}
+	}*/
 
 	//Chase Combo
 	ChaseComboMenu = MainMenu->AddMenu("Chase Combo");
-	ChaseKey = ChaseComboMenu->AddKey("Flee Key", 74);
+	ChaseKey = ChaseComboMenu->AddKey("Chase Key", 74);
 	ChaseQ = ChaseComboMenu->CheckBox("Use Q", true);
-	ERange = ChaseComboMenu->AddInteger("Range To E", 10, 450, 420);
-	RRange = ChaseComboMenu->AddInteger("Range To R", 10, 825, 800);
+	ERange = ChaseComboMenu->AddInteger("Minium Range To E", 10, 450, 420);
+	RRange = ChaseComboMenu->AddInteger("Minium Range To R", 10, 825, 800);
 	Note = ChaseComboMenu->CheckBox("Note:Q Passive Only Stay 3 Sec", true);
+	DrawChaseE = ChaseComboMenu->CheckBox("Draw Chase E Range", false);
+	DrawChaseR = ChaseComboMenu->CheckBox("Draw Chase R Range", false);
+	NoteER = ChaseComboMenu->CheckBox("Max ERange:450 Max RRange:825", true);
 
 	//Harass
 	HarassMenu = MainMenu->AddMenu("Harass Setting");
@@ -181,7 +194,7 @@ void  Menu()
 	//Potions
 	PotionMenu = MainMenu->AddMenu("Potion Setting");
 	usepotion = PotionMenu->CheckBox("Use Potions", true);
-	usepotionhpper = PotionMenu->AddInteger("Use Potions if HP <", 10, 100, 35);
+	usepotionhpper = PotionMenu->AddInteger("Use Potions if HP <", 10, 100, 75);
 
 	//GapClose
 	GapClose = MainMenu->AddMenu("GapClose Setting");
@@ -189,14 +202,14 @@ void  Menu()
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "Auto W on GapClose - " + std::string(Enemy->ChampionName());
-		ChampionuseWGap[Enemy->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
+		ChampionuseWGap[Enemy->GetNetworkId()] = GapClose->CheckBox(szMenuName.c_str(), false);
 	}
 
 	GapE = GapClose->CheckBox("GapClose E", true);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "GapClose E - " + std::string(Enemy->ChampionName());
-		ChampionuseEGap[Enemy->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
+		ChampionuseEGap[Enemy->GetNetworkId()] = GapClose->CheckBox(szMenuName.c_str(), false);
 	}
 
 
@@ -367,7 +380,7 @@ void  Menu()
 			if (R->IsReady())
 			{
 				auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
-				if (ComboRB->Enabled() && target->HasBuff("dianamoonlight") && Player->IsValidTarget(target, R->Range()))
+				if (target != nullptr && ComboRB->Enabled() && target->HasBuff("dianamoonlight") && Player->IsValidTarget(target, R->Range()))
 				{
 					R->CastOnUnit(target);
 					//GGame->PrintChat("cast r only buff");
@@ -385,21 +398,32 @@ void  Menu()
 	}
 
 	//Misaya Combo
-	void MisayaCombo()
+	/*void MisayaCombo()
 	{
-		if (IsKeyDown(ComboMisa) && GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
+		if (IsKeyDown(ComboMisa))
 		{
-			auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
-			AdvPredictionOutput prediction_output;
-			Q->RunPrediction(target, true, kCollidesWithYasuoWall, &prediction_output);
-			if (ChampionuseRQ[target->GetNetworkId()]->Enabled() && Player->IsValidTarget(target, R->Range()) && prediction_output.HitChance >= kHitChanceVeryHigh)
+			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+			//GGame->PrintChat("misaya move");
+			if (UseMisaCombo->Enabled());
 			{
-				R->CastOnUnit(target);
-				Q->CastOnTarget(target);
-				//GGame->PrintChat("cast r,q misaya");
+				if (GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
+				{
+					auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
+
+					R->CastOnUnit(target);
+					//GGame->PrintChat("cast r misaya");
+
+					AdvPredictionOutput prediction_output;
+					Q->RunPrediction(target, true, kCollidesWithYasuoWall, &prediction_output);
+					if (ChampionuseRQ[target->GetNetworkId()]->Enabled() && Player->IsValidTarget(target, Q->Range()) && prediction_output.HitChance >= kHitChanceVeryHigh)
+					{
+						Q->CastOnTarget(target);
+						//GGame->PrintChat("cast q misaya");
+					}
+				}
 			}
 		}
-	}
+	}*/
 	//---------------------------------------------COMBO END-------------------------------------------------------------------------------------------------
 
 	//Harass
@@ -481,9 +505,9 @@ void  Menu()
 					Q->CastOnUnit(minions);
 				//GGame->PrintChat("lc q 3");
 			}
-			if (minions != nullptr && FarmQ->Enabled() && W->IsReady())
+			if (minions != nullptr && FarmW->Enabled() && W->IsReady())
 			{
-				if (MinionAround > 3)
+				if (MinionAround > 3 && minions->IsValidTarget(Player, W->Range()))
 					W->CastOnUnit(minions);
 				//GGame->PrintChat("w 3");
 			}
@@ -566,7 +590,7 @@ void  Menu()
 				if (KillstealQ->Enabled() && Q->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= Enemy->GetHealth() && prediction_output.HitChance >= kHitChanceHigh)
 				{
 					Q->CastOnTarget(Enemy);
-					//GGame->PrintChat("ks  q");
+					GGame->PrintChat("ks  q");
 				}
 
 			}
@@ -577,7 +601,7 @@ void  Menu()
 				if (KillstealR->Enabled() && R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
 				{
 					R->CastOnTarget(Enemy);
-					//GGame->PrintChat("ks  r");
+					GGame->PrintChat("ks  r");
 				}
 
 			}
@@ -588,11 +612,12 @@ void  Menu()
 	//Flee
 	void FleeMode()
 	{
-		if (IsKeyDown(ComboMisa) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
+		/*if (IsKeyDown(FleeKey))
 		{
+			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
 			for (auto Objects : GEntityList->GetAllMinions(false, true, true))
 			{
-				if (Objects != nullptr && Player->IsValidTarget(Objects, R->Range()))
+				if (Objects != nullptr && GEntityList->Player()->GetSpellState(kSlotR) == Ready && Player->IsValidTarget(Objects, R->Range()))
 				{
 					if (R->IsReady() && FleeR->Enabled())
 					{
@@ -602,8 +627,8 @@ void  Menu()
 			}
 		}
 
-		auto QRMANA = R->ManaCost() + Q->ManaCost();
-		if (IsKeyDown(ComboMisa) && GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
+		/*auto QRMANA = R->ManaCost() + Q->ManaCost();
+		if (IsKeyDown(FleeKey) && GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
 		{
 			if (Player->ManaPercent() > QRMANA)
 				for (auto Objects : GEntityList->GetAllMinions(false, true, true))
@@ -621,7 +646,7 @@ void  Menu()
 						}
 					}
 				}
-		}
+		}*/
 	}
 	//---------------------------------------------FLEE END-------------------------------------------------------------------------------------------------
 
@@ -710,8 +735,10 @@ void  Menu()
 	//Chase Combo
 	void ChaseCombo()
 	{
-		if (IsKeyDown(ComboR))
+		if (IsKeyDown(ChaseKey))
 		{
+			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+			//GGame->PrintChat("chase move");
 			if (ComboQ->Enabled())
 			{
 				if (Q->IsReady())
@@ -728,23 +755,30 @@ void  Menu()
 				}
 			}
 
-			//auto Enemys = GEntityList->GetAllHeros(false, true);
-			auto Enemys = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+			auto Enemys = GEntityList->GetAllHeros(false, true);
+			for (auto target : Enemys)
 			{
-				for (auto target : Enemys)
+				auto CurrentPos = target->GetPosition();
+				if (target != nullptr && Player->IsValidTarget(target, 150))
 				{
-					auto CurrentPos = target->GetPosition();
-					if (target != nullptr && Player->IsValidTarget(target, Q->Range()))
+					GGame->IssueOrder(Player, kAutoAttack, target);
+				}
+
+				if (target != nullptr && Player->IsValidTarget(target, W->Range()))
+				{
+					W->CastOnPlayer();
+				}
+
+				if (target != nullptr && Player->IsValidTarget(target, Q->Range()))
+				{
+					if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
 					{
-						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
-						{
-							E->CastOnPlayer();
-						}
-						if (ChampionuseChase[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
-						{
-							R->CastOnTarget(target);
-						}
+						E->CastOnPlayer();
 					}
+				}
+				if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= RRange->GetInteger())
+				{
+					R->CastOnTarget(target);
 				}
 			}
 		}
@@ -761,9 +795,9 @@ void  Menu()
 
 			if (W->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), W->Range()); }
 
-			if (E->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
+			if (E->IsReady() && DrawE->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
 
-			if (R->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
+			if (R->IsReady() && DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
 		}
 		else
@@ -776,15 +810,26 @@ void  Menu()
 
 			if (DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 		}
+
+		if (DrawChaseE->Enabled())
+		{
+			if (E->IsReady() && DrawChaseE->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 64, 0, 255), ERange->GetInteger()); }
+		}
+		if (DrawChaseR->Enabled())
+		{
+			if (R->IsReady() && DrawChaseR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(0, 139, 0, 255), RRange->GetInteger()); }
+		}
 	}
 	//---------------------------------------------DRAWING END-------------------------------------------------------------------------------------------------
 
 	//Gap Close
 	PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 	{
+		//auto target = GEntityList->GetAllHeros(false, true);
+		auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
 		if (args.Sender != nullptr && args.Sender != Player && Player->IsValidTarget(args.Sender, E->Range())
 			&& E->IsReady() && args.Sender->IsEnemy(Player) && GapE->Enabled()
-			&& (Player->GetPosition() - args.EndPosition).Length() < 250)
+			&& (Player->GetPosition() - args.EndPosition).Length() < 250 && ChampionuseEGap[target->GetNetworkId()]->Enabled())
 		{
 			E->CastOnPlayer();
 			//GGame->PrintChat("Gap E");
@@ -792,7 +837,7 @@ void  Menu()
 
 		if (args.Sender != nullptr && args.Sender != Player && Player->IsValidTarget(args.Sender, W->Range())
 			&& W->IsReady() && args.Sender->IsEnemy(Player) && GapW->Enabled()
-			&& (Player->GetPosition() - args.EndPosition).Length() < 250)
+			&& (Player->GetPosition() - args.EndPosition).Length() < 250 && ChampionuseWGap[target->GetNetworkId()]->Enabled())
 		{
 			W->CastOnPlayer();
 			//GGame->PrintChat("Gap W");
@@ -822,23 +867,26 @@ void  Menu()
 		if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear)
 		{
 			LaneClear();
+			JungleClear();
 			LastHitQ();
 		}
-
-		if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
+		//FleeMode();
+		ChaseCombo();
+		//MisayaCombo();
+		/*if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
 		{
-			MisayaCombo();
+			
 		}
 
 		if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
 		{
-			ChaseCombo();
+			
 		}
 
 		if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
 		{
-			FleeMode();
-		}
+			
+		}*/
 	}
 
 	//OnLoad
@@ -846,7 +894,7 @@ void  Menu()
 	{
 		PluginSDKSetup(PluginSDK);
 
-		GPlugin = new IPlugin(Author, Plugin, Version);
+		//GPlugin = new IPlugin(Author, Plugin, Version);
 		Menu();
 		LoadSpells();
 		Player = GEntityList->Player();
@@ -854,7 +902,7 @@ void  Menu()
 		GEventManager->AddEventHandler(kEventOnGameUpdate, OnGameUpdate);
 		GEventManager->AddEventHandler(kEventOnRender, OnRender);
 		GEventManager->AddEventHandler(kEventOnGapCloser, OnGapcloser);
-		GExtension->CheckVersion(GPlugin->GetName(), GPlugin->GetVersion());
+		//GExtension->CheckVersion(GPlugin->GetName(), GPlugin->GetVersion());
 		if (strcmp(GEntityList->Player()->ChampionName(), "Diana") == 0)
 		{
 			GGame->PrintChat("<b><font color = \"#F535AA\">Xu Diana</font><font color=\"#4EE2EC\"> - Loaded</font></b>");
