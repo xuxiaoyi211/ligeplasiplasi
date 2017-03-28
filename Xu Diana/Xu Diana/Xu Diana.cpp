@@ -12,6 +12,9 @@
 //add ordwalk to flee and chasecombo and misaya
 //fix kill steal
 //test gap close
+
+//3/28: fixed chasecombo
+//flee need to fix with QR
 char* Author = "Xu211";
 char* Champion = "Diana";
 char* Plugin = "Xu Diana";
@@ -186,10 +189,10 @@ void  Menu()
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
 
 	//Flee
-	/*FleeMenu = MainMenu->AddMenu("Flee Setting");
+	FleeMenu = MainMenu->AddMenu("Flee Setting");
 	FleeR = FleeMenu->CheckBox("Use R To Flee", true);
 	FleeQR = FleeMenu->CheckBox("Use QR To Flee", false);
-	FleeKey = FleeMenu->AddKey("Flee Key", 74);*/
+	FleeKey = FleeMenu->AddKey("Flee Key", 74);
 
 	//Potions
 	PotionMenu = MainMenu->AddMenu("Potion Setting");
@@ -610,44 +613,73 @@ void  Menu()
 	//---------------------------------------------KILLSTEAL END-------------------------------------------------------------------------------------------------
 
 	//Flee
-	void FleeMode()
+	/*void FleeMode()
 	{
-		/*if (IsKeyDown(FleeKey))
+		if (IsKeyDown(FleeKey))
 		{
-			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
-			for (auto Objects : GEntityList->GetAllMinions(false, true, true))
+			GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
+			if (IsKeyDown(FleeKey))
 			{
-				if (Objects != nullptr && GEntityList->Player()->GetSpellState(kSlotR) == Ready && Player->IsValidTarget(Objects, R->Range()))
+				auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+				for (auto Objects : GEntityList->GetAllMinions(false, true, true))
 				{
-					if (R->IsReady() && FleeR->Enabled())
+					if (Q->IsReady() && Objects != Enemy && FleeQR->Enabled() && Player->IsValidTarget(Objects, Q->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
 					{
-						R->CastOnUnit(Objects);
+						Q->CastOnTarget(Objects);
+						GGame->PrintChat("flee q");
+
+						if (R->IsReady() && FleeQR->Enabled() && Objects->HasBuff("dianamoonlight") && Player->IsValidTarget(Objects, R->Range()))
+						{
+							R->CastOnTarget(Objects);
+							GGame->PrintChat("flee r");
+						}
 					}
 				}
 			}
 		}
 
-		/*auto QRMANA = R->ManaCost() + Q->ManaCost();
-		if (IsKeyDown(FleeKey) && GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
+/*		if (IsKeyDown(FleeKey))
 		{
-			if (Player->ManaPercent() > QRMANA)
-				for (auto Objects : GEntityList->GetAllMinions(false, true, true))
-				{
-					if (Objects != nullptr && Player->IsValidTarget(Objects, Q->Range()))
+			GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
+			auto QRMANA = R->ManaCost() + Q->ManaCost();
+			if (IsKeyDown(FleeKey) && R->IsReady() &&  Q->IsReady())
+			{
+				//if (Player->ManaPercent() > QRMANA)
+					for (auto Objects : GEntityList->GetAllMinions(false, true, true))
 					{
-						if (Q->IsReady() && FleeQR->Enabled())
+						if (Objects != nullptr && Player->IsValidTarget(Objects, Q->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
 						{
-							Q->CastOnTarget(Objects);
-						}
+							if (FleeQR->Enabled())
+							{
+								Q->CastOnTarget(Objects);
+								GGame->PrintChat("flee q");
 
-						if (R->IsReady() && FleeQR->Enabled())
-						{
-							R->CastOnUnit(Objects);
+								if (FleeQR->Enabled() && Objects->HasBuff("dianamoonlight"))
+								{
+									R->CastOnTarget(Objects);
+									GGame->PrintChat("flee r");
+								}
+
+							}
 						}
 					}
-				}
+			}
 		}*/
-	}
+
+		/*{
+		GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
+		for (auto Objects : GEntityList->GetAllMinions(false, true, true))
+		{
+		if (Objects != nullptr && GEntityList->Player()->GetSpellState(kSlotR) == Ready && Player->IsValidTarget(Objects, R->Range()) && !Objects->IsDead)
+		{
+		if (FleeR->Enabled())
+		{
+		R->CastOnUnit(Objects);
+		}
+		}
+		}
+		}
+	}*/
 	//---------------------------------------------FLEE END-------------------------------------------------------------------------------------------------
 
 	//Potions
@@ -737,7 +769,14 @@ void  Menu()
 	{
 		if (IsKeyDown(ChaseKey))
 		{
-			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+			if (!Player->IsWindingUp())
+			{
+				GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+			}
+			//do attack issue order
+			auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+			GGame->IssueOrder(Player, kAttackUnit, target);
+
 			//GGame->PrintChat("chase move");
 			if (ComboQ->Enabled())
 			{

@@ -3,9 +3,9 @@ d:\l++\add\Vector3.h(183): warning C4244: “return”: 从“double”转换到
 d:\l++\add\Vector3.h(194): warning C4244: “return”: 从“int”转换到“float”，可能丢失数据
 d:\l++\add\Vector3.h(275): warning C4244: “参数”: 从“double”转换到“const float”，可能丢失数据
   Xu Diana.cpp
-Xu Diana.cpp(18): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-Xu Diana.cpp(816): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Xu Diana.cpp(820): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Diana.cpp(21): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+Xu Diana.cpp(855): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Diana.cpp(859): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
     正在创建库 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Xu Diana\Release\Xu Diana.lib 和对象 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Xu Diana\Release\Xu Diana.exp
   正在生成代码
   All 305 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
