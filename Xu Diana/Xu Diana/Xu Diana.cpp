@@ -137,8 +137,8 @@ void  Menu()
 	ComboR = ComboMenu->CheckBox("Use R", true);
 	ComboRB = ComboMenu->CheckBox("Only R Moonlight Target", true);
 	Note2 = ComboMenu->CheckBox("^ Low ping, Untick will be misaya", true);
-	UseMisaCombo = ComboMenu->CheckBox("Enable Misaya Combo", true);
-	/*ComboMisa = ComboMenu->AddKey("Misaya Combo Key", 84);
+	/*UseMisaCombo = ComboMenu->CheckBox("Enable Misaya Combo", true);
+	ComboMisa = ComboMenu->AddKey("Misaya Combo Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
 		std::string szMenuName = "Use Misaya Combo On - " + std::string(Enemy->ChampionName());
@@ -186,10 +186,10 @@ void  Menu()
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
 
 	//Flee
-	FleeMenu = MainMenu->AddMenu("Flee Setting");
+	/*FleeMenu = MainMenu->AddMenu("Flee Setting");
 	FleeR = FleeMenu->CheckBox("Use R To Flee", true);
 	FleeQR = FleeMenu->CheckBox("Use QR To Flee", false);
-	FleeKey = FleeMenu->AddKey("Flee Key", 74);
+	FleeKey = FleeMenu->AddKey("Flee Key", 74);*/
 
 	//Potions
 	PotionMenu = MainMenu->AddMenu("Potion Setting");
