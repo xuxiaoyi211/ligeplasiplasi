@@ -1,8 +1,7 @@
 #include "PluginSDK.h"
 #include <map>
 #include <string>
-#include "Plugin.h"
-#include "Extension.h"
+
 //TO DO:
 // Need R safty Check?
 // Chase Combo, save R and E, use GTargetSelector?
@@ -73,9 +72,9 @@ IMenuOption* KillstealQ;
 IMenuOption* KillstealR;
 IMenuOption* AutoQSS;
 
-IMenuOption* FleeKey;
+/*IMenuOption* FleeKey;
 IMenuOption* FleeR;
-IMenuOption* FleeQR;
+IMenuOption* FleeQR;*/
 
 IMenuOption* usepotion;
 IMenuOption* usepotionhpper;
@@ -189,10 +188,10 @@ void  Menu()
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
 
 	//Flee
-	FleeMenu = MainMenu->AddMenu("Flee Setting");
+	/*FleeMenu = MainMenu->AddMenu("Flee Setting");
 	FleeR = FleeMenu->CheckBox("Use R To Flee", true);
 	FleeQR = FleeMenu->CheckBox("Use QR To Flee", false);
-	FleeKey = FleeMenu->AddKey("Flee Key", 74);
+	FleeKey = FleeMenu->AddKey("Flee Key", 74);*/
 
 	//Potions
 	PotionMenu = MainMenu->AddMenu("Potion Setting");
@@ -590,21 +589,21 @@ void  Menu()
 			Q->RunPrediction(target, true, kCollidesWithYasuoWall, &prediction_output);
 			if (Enemy != nullptr && !Enemy->IsDead())
 			{
-				if (KillstealQ->Enabled() && Q->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= Enemy->GetHealth() && prediction_output.HitChance >= kHitChanceHigh)
+				if (KillstealQ->Enabled() && Q->IsReady() && target->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= target->GetHealth() && prediction_output.HitChance >= kHitChanceHigh)
 				{
-					Q->CastOnTarget(Enemy);
-					GGame->PrintChat("ks  q");
+					Q->CastOnTarget(target);
+					//GGame->PrintChat("ks  q");
 				}
 
 			}
-
-
+			
+			auto rtarget = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
 			if (Enemy != nullptr && !Enemy->IsDead())
 			{
-				if (KillstealR->Enabled() && R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
+				if (KillstealR->Enabled() && R->IsReady() && rtarget->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= rtarget->GetHealth())
 				{
-					R->CastOnTarget(Enemy);
-					GGame->PrintChat("ks  r");
+					R->CastOnTarget(rtarget);
+					//GGame->PrintChat("ks  r");
 				}
 
 			}
@@ -627,18 +626,17 @@ void  Menu()
 					{
 						Q->CastOnTarget(Objects);
 						GGame->PrintChat("flee q");
-
-						if (R->IsReady() && FleeQR->Enabled() && Objects->HasBuff("dianamoonlight") && Player->IsValidTarget(Objects, R->Range()))
-						{
-							R->CastOnTarget(Objects);
-							GGame->PrintChat("flee r");
-						}
+					}
+					if (R->IsReady() && FleeQR->Enabled() && Objects->HasBuff("dianamoonlight") && Player->IsValidTarget(Objects, R->Range() && Objects->IsValidTarget() && !Objects->IsDead()))
+					{
+						R->CastOnTarget(Objects);
+						GGame->PrintChat("flee r");
 					}
 				}
 			}
 		}
 
-/*		if (IsKeyDown(FleeKey))
+		/*if (IsKeyDown(FleeKey))
 		{
 			GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
 			auto QRMANA = R->ManaCost() + Q->ManaCost();
@@ -664,7 +662,7 @@ void  Menu()
 						}
 					}
 			}
-		}*/
+		}
 
 		/*{
 		GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());

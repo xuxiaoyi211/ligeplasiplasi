@@ -111,16 +111,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="D:\L++\Add\LPPConstants.h" />
-    <ClInclude Include="D:\L++\Add\PluginData.h" />
-    <ClInclude Include="D:\L++\Add\PluginSDK.h" />
-    <ClInclude Include="D:\L++\Add\Vector3.h" />
-    <ClInclude Include="D:\L++\IExtension\Extension.h" />
-    <ClInclude Include="D:\L++\IPlugin\Plugin.h" />
+    <ClCompile Include="PluginSDK.cpp" />
+    <ClCompile Include="Xu Diana.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="D:\L++\Add\PluginSDK.cpp" />
-    <ClCompile Include="Xu Diana.cpp" />
+    <ClInclude Include="Extension.h" />
+    <ClInclude Include="LPPConstants.h" />
+    <ClInclude Include="Plugin.h" />
+    <ClInclude Include="PluginData.h" />
+    <ClInclude Include="PluginSDK.h" />
+    <ClInclude Include="Vector3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

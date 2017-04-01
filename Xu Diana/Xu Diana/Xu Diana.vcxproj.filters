@@ -15,31 +15,31 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="D:\L++\Add\LPPConstants.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D:\L++\Add\PluginData.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D:\L++\Add\PluginSDK.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D:\L++\Add\Vector3.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D:\L++\IExtension\Extension.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="D:\L++\IPlugin\Plugin.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="D:\L++\Add\PluginSDK.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Xu Diana.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="PluginSDK.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Extension.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LPPConstants.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Plugin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginSDK.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
