@@ -40,6 +40,8 @@ IMenuOption* ComboW;
 IMenuOption* ComboWcc;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
+IMenuOption* AutoR;
+IMenuOption* SafeAutoR;
 IMenuOption* RRange;
 IMenuOption* HarassQ;
 IMenuOption* HarassW;
@@ -134,10 +136,12 @@ void  Menu()
 		ChampionuseW[Enemys->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
+	AutoR = ComboMenu->CheckBox("Auto R + KS R", false);
+	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 600, 3500);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
-		std::string szMenuName = "Use R on - " + std::string(Enemy->ChampionName());
+		std::string szMenuName = "Use Tap R on - " + std::string(Enemy->ChampionName());
 		ChampionuseR[Enemy->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	RRange = ComboMenu->AddInteger("R Search Range", 0, 3500, 3500);
@@ -663,7 +667,7 @@ void AutoImmobile()
 	if (W->IsReady())
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, W->Range());
-		if (target != nullptr && Player->IsValidTarget(target, W->Range()) && !target->IsInvulnerable())
+		if (target != nullptr && Player->IsValidTarget(target, W->Range()) && !target->IsInvulnerable() && Player->HasBuff("JhinRShot"))
 		{
 			if (ImmobileW->Enabled() && target->HasBuff("jhinespotteddebuff") || target->HasBuffOfType(BUFF_Snare) || target->HasBuffOfType(BUFF_Taunt)
 				|| target->HasBuffOfType(BUFF_Suppression) || target->HasBuffOfType(BUFF_Stun) || target->HasBuffOfType(BUFF_Knockup)
@@ -797,6 +801,34 @@ void AHeal()
 	}*/
 }
 
+void AutoRMode()
+{
+
+	if (AutoR->Enabled() && GOrbwalking->GetOrbwalkingMode() == kModeCombo)
+	{
+		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
+		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()) && !Player->IsValidTarget(target, SafeAutoR->GetInteger()))
+		{
+			R->CastOnTarget(target, kHitChanceHigh);
+		}
+	}
+
+	if (AutoR->Enabled())
+	{
+		for (auto Enemy : GEntityList->GetAllHeros(false, true))
+		{
+			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
+			if (Enemy != nullptr && !Enemy->IsDead())
+			{
+				if (R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
+				{
+					R->CastOnTarget(Enemy, kHitChanceHigh);
+				}
+
+			}
+		}
+	}
+}
 /*void Flee()
 {
 if (!FleeJ(Flee))
@@ -854,6 +886,19 @@ GEntityList->Player()->SetSkinId(GEntityList->Player()->GetSkinId());
 {
 
 }*/
+
+/*static void OnProcessSpell(CastedSpell const& Args)
+{
+	if (GEntityList->Player()->HasBuff("JhinRShot"))
+	{
+		GOrbwalking->SetMovementAllowed(false);
+	}
+	else
+	{
+		GOrbwalking->SetMovementAllowed(true);
+	}
+}*/
+
 PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
 {
 	if (args.Sender != nullptr && args.Sender != Player && Player->IsValidTarget(args.Sender, W->Range())
@@ -916,6 +961,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 		jungleclear();
 	}
 	AutoImmobile();
+	AutoRMode();
 	killsteal();
 	UseItems();
 	Usepotion();
