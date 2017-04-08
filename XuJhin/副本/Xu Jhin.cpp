@@ -41,6 +41,8 @@ IMenuOption* ComboWcc;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* AutoR;
+IMenuOption* AutoR2;
+IMenuOption* RTap;
 IMenuOption* SafeAutoR;
 IMenuOption* RRange;
 IMenuOption* HarassQ;
@@ -136,8 +138,10 @@ void  Menu()
 		ChampionuseW[Enemys->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
-	AutoR = ComboMenu->CheckBox("Auto R + KS R", false);
-	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 600, 3500);
+	AutoR = ComboMenu->CheckBox("Use R In Combo", false);
+	SafeAutoR = ComboMenu->AddInteger("Safe Range For Combo R", 0, 600, 3500);
+	AutoR2 = ComboMenu->CheckBox("Auto Fire R Bullets", false);
+	RTap = ComboMenu->CheckBox("Use Tap Key To Fire R Bullets", false);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
@@ -457,7 +461,7 @@ void Combo()
 
 void UseR()
 {
-	if (IsKeyDown(ComboR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
+	if (RTap->Enabled() && IsKeyDown(ComboR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
 		auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, RRange->GetInteger());
 		{
@@ -820,12 +824,24 @@ void AutoRMode()
 			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
 			if (Enemy != nullptr && !Enemy->IsDead())
 			{
-				if (R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
+				if (R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth() && !Player->IsValidTarget(Enemy, SafeAutoR->GetInteger()))
 				{
 					R->CastOnTarget(Enemy, kHitChanceHigh);
 				}
 
 			}
+		}
+	}
+}
+
+void RealAutoR()
+{
+	if (AutoR2->Enabled() && Player->HasBuff("JhinRShot"))
+	{
+		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
+		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()))
+		{
+			R->CastOnTarget(target, kHitChanceHigh);
 		}
 	}
 }
@@ -962,6 +978,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	}
 	AutoImmobile();
 	AutoRMode();
+	RealAutoR();
 	killsteal();
 	UseItems();
 	Usepotion();
