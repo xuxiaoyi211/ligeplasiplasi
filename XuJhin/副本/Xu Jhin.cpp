@@ -41,9 +41,9 @@ IMenuOption* ComboWcc;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* AutoR;
-IMenuOption* AutoR2;
-IMenuOption* RTap;
 IMenuOption* SafeAutoR;
+IMenuOption* AutoFire;
+IMenuOption* Rtap;
 IMenuOption* RRange;
 IMenuOption* HarassQ;
 IMenuOption* HarassW;
@@ -139,9 +139,9 @@ void  Menu()
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	AutoR = ComboMenu->CheckBox("Use R In Combo", false);
-	SafeAutoR = ComboMenu->AddInteger("Safe Range For Combo R", 0, 600, 3500);
-	AutoR2 = ComboMenu->CheckBox("Auto Fire R Bullets", false);
-	RTap = ComboMenu->CheckBox("Use Tap Key To Fire R Bullets", false);
+	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 600, 3500);
+	AutoFire = ComboMenu->CheckBox("Auto Fire Bullets", false);
+	Rtap = ComboMenu->CheckBox("Enable Tap R", true);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
 	{
@@ -369,7 +369,7 @@ void Combo()
 		}
 	}
 
-	if (ComboQ->Enabled())
+	if (ComboQ->Enabled() && !Player->HasBuff("JhinRShot"))
 	{
 		if (Q->IsReady() || Player->HasBuff("JhinPassiveReload"))
 		{
@@ -381,7 +381,7 @@ void Combo()
 			}
 		}
 	}
-	if (ComboW->Enabled())
+	if (ComboW->Enabled() && !Player->HasBuff("JhinRShot"))
 	{
 		if (W->IsReady())
 		{
@@ -420,7 +420,7 @@ void Combo()
 	}
 	}*/
 
-	if (ComboE->Enabled() && E->IsReady())
+	if (ComboE->Enabled() && E->IsReady() && !Player->HasBuff("JhinRShot"))
 	{
 		if (Player->GetMana() > Q->ManaCost() + W->ManaCost())
 		{
@@ -461,7 +461,7 @@ void Combo()
 
 void UseR()
 {
-	if (RTap->Enabled() && IsKeyDown(ComboR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
+	if (IsKeyDown(ComboR) && Rtap->Enabled() && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
 		auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, RRange->GetInteger());
 		{
@@ -490,10 +490,10 @@ void trinket()
 		{
 			auto lastPos = target->GetPosition();
 			if (!target->IsVisible())
-			{ 
+			{
 				if (ChampionuseTrinket[target->GetNetworkId()]->Enabled() && (GEntityList->Player()->GetPosition() - lastPos).Length2D() <= RRange->GetInteger())
-				{ 
-					Trinket->CastOnPosition(lastPos)||Yellow->CastOnPosition(lastPos);
+				{
+					Trinket->CastOnPosition(lastPos) || Yellow->CastOnPosition(lastPos);
 				}
 			}
 		}
@@ -609,13 +609,13 @@ void laneclear()
 			if (FarmW->Enabled() && W->IsReady())
 			{
 				if (Player->IsValidTarget(minions, W->Range()))
-				W->CastOnTarget(minions) || W->LastHitMinion();
+					W->CastOnTarget(minions) || W->LastHitMinion();
 				//GGame->PrintChat("lc  w");
 			}
 			if (FarmE->Enabled() && E->IsReady())
 			{
 				if (Player->IsValidTarget(minions, E->Range()))
-				E->CastOnUnit(minions) || E->LastHitMinion();
+					E->CastOnUnit(minions) || E->LastHitMinion();
 				//GGame->PrintChat("lc  e");
 			}
 		}
@@ -793,21 +793,20 @@ void AHeal()
 			Heal->CastOnPlayer();
 		}
 	}
-//utiltyti ++
-		/*if (HealTeamateActive->Enabled())
-		{
-			auto Teamates = GEntityList->GetAllHeros(true, false);
-			for (IUnit* Teamate : Teamates)
-			{
-				if (!(Teamate->IsDead()) && GetDistance(Hero, Teamate) <= HEAL->GetSpellRange() && Teamate->HealthPercent() <= HealTeamatePercent->GetInteger() && EnemiesInRange(Teamate, 600) > 0) { HEAL->CastOnUnit(Teamate); } //Cast on injured teamate
-			}
-		}
+	//utiltyti ++
+	/*if (HealTeamateActive->Enabled())
+	{
+	auto Teamates = GEntityList->GetAllHeros(true, false);
+	for (IUnit* Teamate : Teamates)
+	{
+	if (!(Teamate->IsDead()) && GetDistance(Hero, Teamate) <= HEAL->GetSpellRange() && Teamate->HealthPercent() <= HealTeamatePercent->GetInteger() && EnemiesInRange(Teamate, 600) > 0) { HEAL->CastOnUnit(Teamate); } //Cast on injured teamate
+	}
+	}
 	}*/
 }
 
 void AutoRMode()
 {
-
 	if (AutoR->Enabled() && GOrbwalking->GetOrbwalkingMode() == kModeCombo)
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
@@ -816,30 +815,14 @@ void AutoRMode()
 			R->CastOnTarget(target, kHitChanceHigh);
 		}
 	}
-
-	if (AutoR->Enabled())
-	{
-		for (auto Enemy : GEntityList->GetAllHeros(false, true))
-		{
-			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
-			if (Enemy != nullptr && !Enemy->IsDead())
-			{
-				if (R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth() && !Player->IsValidTarget(Enemy, SafeAutoR->GetInteger()))
-				{
-					R->CastOnTarget(Enemy, kHitChanceHigh);
-				}
-
-			}
-		}
-	}
 }
 
-void RealAutoR()
+void AutoFiring()
 {
-	if (AutoR2->Enabled() && Player->HasBuff("JhinRShot"))
+	if (AutoFire->Enabled() && !Rtap->Enabled() && Player->HasBuff("JhinRShot"))
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
-		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()))
+		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()) && !Player->IsValidTarget(target, SafeAutoR->GetInteger()))
 		{
 			R->CastOnTarget(target, kHitChanceHigh);
 		}
@@ -905,14 +888,14 @@ GEntityList->Player()->SetSkinId(GEntityList->Player()->GetSkinId());
 
 /*static void OnProcessSpell(CastedSpell const& Args)
 {
-	if (GEntityList->Player()->HasBuff("JhinRShot"))
-	{
-		GOrbwalking->SetMovementAllowed(false);
-	}
-	else
-	{
-		GOrbwalking->SetMovementAllowed(true);
-	}
+if (GEntityList->Player()->HasBuff("JhinRShot"))
+{
+GOrbwalking->SetMovementAllowed(false);
+}
+else
+{
+GOrbwalking->SetMovementAllowed(true);
+}
 }*/
 
 PLUGIN_EVENT(void) OnGapcloser(GapCloserSpell const& args)
@@ -978,7 +961,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	}
 	AutoImmobile();
 	AutoRMode();
-	RealAutoR();
+	AutoFiring();
 	killsteal();
 	UseItems();
 	Usepotion();
