@@ -583,6 +583,30 @@ void  Menu()
 		for (auto Enemy : GEntityList->GetAllHeros(false, true))
 		{
 			auto QDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
+			if (Enemy != nullptr && !Enemy->IsDead())
+			{
+				if (KillstealQ->Enabled() && Q->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= Enemy->GetHealth())
+				{
+					Q->CastOnTarget(Enemy);
+					//GGame->PrintChat("ks  q");
+				}
+			}
+
+			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
+			if (Enemy != nullptr && !Enemy->IsDead())
+			{
+				if (KillstealR->Enabled() && R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
+				{
+					R->CastOnTarget(Enemy);
+					//GGame->PrintChat("ks  r");
+				}
+
+			}
+		}
+		/*
+		for (auto Enemy : GEntityList->GetAllHeros(false, true))
+		{
+			auto QDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
 			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
 			auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
 			AdvPredictionOutput prediction_output;
@@ -607,7 +631,7 @@ void  Menu()
 				}
 
 			}
-		}
+		}*/
 	}
 	//---------------------------------------------KILLSTEAL END-------------------------------------------------------------------------------------------------
 
