@@ -247,19 +247,28 @@ void Combo()
 {
 	if (ComboQ->Enabled())
 	{
-		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, Q->Range());
+		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy2 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
 
-		if (target != nullptr && !target->IsDead() && target->IsHero())
+		if (minion != nullptr && !minion->IsDead())
 		{
-			if (Q->IsReady() && ComboQ2->Enabled() && target->IsValidTarget(Player, Q->Range()))
+			if (Q->IsReady() && ComboQ2->Enabled() && minion->IsValidTarget(Player, Q->Range()))
 			{
-				Q2();
+				for (auto Enemy1 : GEntityList->GetAllHeros(false, true))
+					for (auto Enemy2 : GEntityList->GetAllHeros(false, true))
+					{
+						if ((GEntityList->Player()->GetPosition() - Enemy1->GetPosition()).Length2D() <= Q->Range() && (Enemy1->GetPosition() - Enemy2->GetPosition()).Length2D() <= 250 > (GEntityList->Player()->GetPosition() - Enemy1->GetPosition()).Length2D() && Enemy1->IsValidTarget(GEntityList->Player(), Q->Range()))
+						{
+							Q->CastOnTarget(minion, 5);
+						}
+					}
 			}
 			else
 			{
-				if (Q->IsReady() && target->IsValidTarget(Player, Q->Range()))
+				if (Q->IsReady() && Enemy1->IsValidTarget(Player, Q->Range()))
 				{
-					Q->CastOnTarget(target);
+					Q->CastOnTarget(Enemy1);
 				}
 			}
 		}
@@ -299,23 +308,31 @@ void Harass()
 		return;
 	if (HarassQ->Enabled())
 	{
-		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, Q->Range());
+		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy2 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
 
-		if (target != nullptr && !target->IsDead() && target->IsHero())
+
+		if (Q->IsReady() && HarassQ2->Enabled() && minion->IsValidTarget(Player, Q->Range()))
 		{
-			if (Q->IsReady() && HarassQ2->Enabled() && target->IsValidTarget(Player, Q->Range()))
-			{
-				MinQ2();
-			}
-			else
-			{
-				if (Q->IsReady() && target->IsValidTarget(Player, Q->Range()))
+			for (auto Enemy1 : GEntityList->GetAllHeros(false, true))
+				for (auto Enemy2 : GEntityList->GetAllHeros(false, true))
 				{
-					Q->CastOnTarget(target);
+					if ((GEntityList->Player()->GetPosition() - Enemy1->GetPosition()).Length2D() <= Q->Range() && (Enemy1->GetPosition() - Enemy2->GetPosition()).Length2D() <= 250 > (GEntityList->Player()->GetPosition() - Enemy1->GetPosition()).Length2D() && Enemy1->IsValidTarget(GEntityList->Player(), Q->Range()))
+					{
+						Q->CastOnTarget(minion, 5);
+					}
 				}
+		}
+		else
+		{
+			if (Q->IsReady() && Enemy1->IsValidTarget(Player, Q->Range()))
+			{
+				Q->CastOnTarget(Enemy1);
 			}
 		}
 	}
+
 
 	if (HarassW->Enabled())
 	{
@@ -364,7 +381,7 @@ void Farm()
 		}
 	}
 
-	if (HarassQ->Enabled())
+	/*if (HarassQ->Enabled())
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, Q->Range());
 
@@ -382,7 +399,7 @@ void Farm()
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void QLast()
@@ -506,6 +523,7 @@ void AHeal()
 	}
 }
 
+//RyTakAIO
 void Q2()
 {
 	{
@@ -522,7 +540,7 @@ void Q2()
 			}
 	}
 }
-
+//RyTakAIO
 void MinQ2()
 {
 	auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
@@ -605,10 +623,10 @@ PLUGIN_EVENT(void) OnRender()
 		if (W->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), W->Range()); }
 
 		if (E->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
-
+		
 		if (R->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
-		if (Q->IsReady() && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions->GetPosition(), Vec4(255, 255, 0, 255), 500); }
+		//if (Q->IsReady() && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions(false,true,true)->GetPosition(), Vec4(255, 255, 0, 255), 500); }
 	}
 	else
 	{
@@ -620,7 +638,7 @@ PLUGIN_EVENT(void) OnRender()
 
 		if (DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
-		if (DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions->GetPosition(), Vec4(255, 255, 0, 255), 500); }
+		//if (DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions(false, true, true)->GetPosition(), Vec4(255, 255, 0, 255), 500); }
 	}
 }
 

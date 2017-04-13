@@ -21,10 +21,10 @@
     <ClInclude Include="D:\L++\sdk\League++ SDK\PluginData.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="D:\L++\sdk\League++ SDK\PluginSDK.h">
+    <ClInclude Include="D:\L++\sdk\League++ SDK\Vector3.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="D:\L++\sdk\League++ SDK\Vector3.h">
+    <ClInclude Include="D:\L++\sdk\League++ SDK\PluginSDK.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
