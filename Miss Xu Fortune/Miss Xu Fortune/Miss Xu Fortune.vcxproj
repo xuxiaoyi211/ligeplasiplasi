@@ -112,14 +112,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="D:\L++\sdk\League++ SDK\PluginSDK.cpp" />
+    <ClCompile Include="Miss Xu Fortune.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="D:\L++\sdk\League++ SDK\LPPConstants.h" />
     <ClInclude Include="D:\L++\sdk\League++ SDK\PluginData.h" />
     <ClInclude Include="D:\L++\sdk\League++ SDK\PluginSDK.h" />
     <ClInclude Include="D:\L++\sdk\League++ SDK\Vector3.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="D:\L++\sdk\League++ SDK\PluginSDK.cpp" />
-    <ClCompile Include="Miss Xu Fortune.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

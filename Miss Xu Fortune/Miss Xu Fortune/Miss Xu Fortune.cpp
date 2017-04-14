@@ -2,10 +2,6 @@
 #include <map>
 #include <string>
 
-char* Author = "Xu211";
-char* Champion = "Miss Fortune";
-char* Plugin = "Miss Xu Fortune";
-int Version = 1.0;
 
 PluginSetup("Miss Xu Fortune");
 
@@ -679,7 +675,6 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 {
 	PluginSDKSetup(PluginSDK);
 
-	//GPlugin = new IPlugin(Author, Plugin, Version);
 	Menu();
 	LoadSpells();
 	Player = GEntityList->Player();
@@ -695,10 +690,7 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	{
 		GGame->PrintChat("This plugin is for Miss Fortune");
 	}
-	/*if (CheckUpdate->Enable())
-	{
-	version();
-	}*/
+
 }
 
 
@@ -708,5 +700,5 @@ PLUGIN_API void OnUnload()
 
 	GEventManager->RemoveEventHandler(kEventOnGameUpdate, OnGameUpdate);
 	GEventManager->RemoveEventHandler(kEventOnRender, OnRender);
-	GGame->PrintChat("Plugin Unloaded");
+	GGame->PrintChat("Good Bye <3.Plugin Now Unloaded");
 }
