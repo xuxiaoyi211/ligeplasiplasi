@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 
+//potion, trinket, items, Q2,QSS,semiR,R cant stop, and casue error
 
 PluginSetup("Miss Xu Fortune");
 
@@ -26,8 +27,6 @@ IMenuOption* SafeR;
 IMenuOption* Blade_Cutlass;
 IMenuOption* Ghost_Blade;
 
-
-IMenuOption* ERange;
 IMenuOption* RRange;
 
 IMenuOption* HarassQ;
@@ -107,8 +106,7 @@ void  Menu()
 	ComboW = ComboMenu->CheckBox("Use W", true);
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	ComboR = ComboMenu->CheckBox("Use R", true);
-	SafeR = ComboMenu->AddInteger("Safe Range To R In Combo", 0, 550, 1000);
-	AutoR = MiscMenu->AddKey("Semi R", 84);
+	SafeR = ComboMenu->AddInteger("Safe Range To R In Combo", 0, 1000, 600);
 
 	//Harass
 	HarassMenu = MainMenu->AddMenu("Harass Setting");
@@ -119,7 +117,7 @@ void  Menu()
 	HarassManaPercent = HarassMenu->AddInteger("Mana Percent for harass", 10, 100, 45);
 
 	//Farm
-	FarmMenu = MainMenu->AddMenu("LaneClear Setting");
+	FarmMenu = MainMenu->AddMenu("Farm Setting");
 	FarmQ = FarmMenu->CheckBox("Use Q Farm", true);
 	FarmW = FarmMenu->CheckBox("Use W Farm", false);
 	FarmE = FarmMenu->CheckBox("Use E Farm", false);
@@ -131,10 +129,12 @@ void  Menu()
 	KillstealQ = MiscMenu->CheckBox("Use Q to killsteal", true);
 	KillstealE = MiscMenu->CheckBox("Use E to killsteal", true);
 	KillstealR = MiscMenu->CheckBox("Use R to killsteal", true);
-	AutoRNumber = MiscMenu->AddInteger("Mana Percent for Farm", 10, 100, 45);
+	AutoRNumber = MiscMenu->AddInteger("Auto R X Enemies", 0, 5, 3);
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
 	AutoHeal = MiscMenu->CheckBox("Auto Heal", true);
 	MyHeal = MiscMenu->AddInteger("Use Heal When My Hp <", 10, 100, 35);
+	AutoR = MiscMenu->AddKey("Semi R", 84);
+
 
 	//Items
 	ItemsMenu = MainMenu->AddMenu("Items Setting");
@@ -152,8 +152,7 @@ void  Menu()
 	Drawings = MainMenu->AddMenu("Drawings");
 	DrawReady = Drawings->CheckBox("Draw Only Ready Spells", true);
 	DrawQ = Drawings->CheckBox("Draw Q", true);
-	DrawQ2 = Drawings->CheckBox("Draw Q", true);
-	DrawW = Drawings->CheckBox("Draw W", false);
+	DrawQ2 = Drawings->CheckBox("Draw Q2", true);
 	DrawE = Drawings->CheckBox("Draw E", false);
 	DrawR = Drawings->CheckBox("Draw R", true);
 
@@ -241,7 +240,7 @@ int CountEnemiesInRange(float range)
 //Excute Combo Logic
 void Combo()
 {
-	if (ComboQ->Enabled())
+	if (ComboQ->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
 		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
@@ -270,7 +269,7 @@ void Combo()
 		}
 	}
 
-	if (ComboW->Enabled())
+	if (ComboW->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, 575);
 		if (target != nullptr && !target->IsDead() && W->IsReady() && target->IsValidTarget(Player, 575))
@@ -279,7 +278,7 @@ void Combo()
 		}
 	}
 
-	if (ComboE->Enabled())
+	if (ComboE->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, E->Range());
 		if (target != nullptr && !target->IsDead() && E->IsReady() && target->IsValidTarget(Player, E->Range()))
@@ -290,10 +289,18 @@ void Combo()
 
 	if (ComboR->Enabled())
 	{
-		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, R->Range());
-		if (target != nullptr && !target->IsDead() && R->IsReady() && target->IsValidTarget(Player, R->Range()) && !Player->IsValidTarget(target, SafeR->GetInteger()))
+		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
+
+		if (!target->IsValidTarget(Player, R->Range()) && Player->HasBuff("missfortunebulletsound"))
 		{
-			R->CastOnTarget(target);
+			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+		}
+		else
+		{
+			if (target != nullptr && !target->IsDead() && R->IsReady() && target->IsValidTarget(Player, R->Range()) && !target->IsValidTarget(Player, SafeR->GetInteger()))
+			{
+				R->CastOnTarget(target);
+			}
 		}
 	}
 }
@@ -302,7 +309,7 @@ void Harass()
 {
 	if (Player->ManaPercent() < HarassManaPercent->GetInteger())
 		return;
-	if (HarassQ->Enabled())
+	if (HarassQ->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
 		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
@@ -330,7 +337,7 @@ void Harass()
 	}
 
 
-	if (HarassW->Enabled())
+	if (HarassW->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, 575);
 		if (target != nullptr && !target->IsDead() && W->IsReady() && target->IsValidTarget(Player, 575))
@@ -340,7 +347,7 @@ void Harass()
 	}
 
 
-	if (HarassE->Enabled())
+	if (HarassE->Enabled() && !Player->HasBuff("missfortunebulletsound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, E->Range());
 		if (target != nullptr && !target->IsDead() && E->IsReady() && target->IsValidTarget(Player, E->Range()))
@@ -450,6 +457,11 @@ void SemiR()
 {
 	if (IsKeyDown(AutoR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
+		if (!Player->HasBuff("missfortunebulletsound"))
+		{
+			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
+		}
+		
 		auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
 		{
 			auto target = Enemy;
@@ -616,19 +628,15 @@ PLUGIN_EVENT(void) OnRender()
 	{
 		if (Q->IsReady() && DrawQ->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), Q->Range()); }
 
-		if (W->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), W->Range()); }
-
-		if (E->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
+		if (E->IsReady() && DrawE->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
 		
-		if (R->IsReady() && DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
+		if (R->IsReady() && DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
 		//if (Q->IsReady() && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions(false,true,true)->GetPosition(), Vec4(255, 255, 0, 255), 500); }
 	}
 	else
 	{
 		if (DrawQ->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), Q->Range()); }
-
-		if (DrawW->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), W->Range()); }
 
 		if (DrawE->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), E->Range()); }
 
@@ -644,7 +652,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	if (GOrbwalking->GetOrbwalkingMode() == kModeCombo)
 	{
 		Combo();
-		trinket();
+		//trinket();
 	}
 
 	if (GOrbwalking->GetOrbwalkingMode() == kModeLastHit)
@@ -663,9 +671,9 @@ PLUGIN_EVENT(void) OnGameUpdate()
 		Farm();
 	}
 	KS();
+	/*Usepotion();
 	UseItems();
-	Usepotion();
-	AutoQss();
+	AutoQss();*/
 	SemiR();
 	AHeal();
 
@@ -675,6 +683,13 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 {
 	PluginSDKSetup(PluginSDK);
 
+	std::string playerHero = GEntityList->Player()->ChampionName();
+
+	if (playerHero == "MissFortune")
+	{
+		GGame->PrintChat("<b><font color = \"#F535AA\">Miss Xu Fortune</font><font color=\"#4EE2EC\"> - Loaded</font></b>");
+	}
+
 	Menu();
 	LoadSpells();
 	Player = GEntityList->Player();
@@ -682,14 +697,7 @@ PLUGIN_API void OnLoad(IPluginSDK* PluginSDK)
 	GEventManager->AddEventHandler(kEventOnGameUpdate, OnGameUpdate);
 	GEventManager->AddEventHandler(kEventOnRender, OnRender);
 
-	if (strcmp(GEntityList->Player()->ChampionName(), "Miss Fortune") == 0)
-	{
-		GGame->PrintChat("<b><font color = \"#F535AA\">Miss Xu Fortune</font><font color=\"#4EE2EC\"> - Loaded</font></b>");
-	}
-	else
-	{
-		GGame->PrintChat("This plugin is for Miss Fortune");
-	}
+
 
 }
 
