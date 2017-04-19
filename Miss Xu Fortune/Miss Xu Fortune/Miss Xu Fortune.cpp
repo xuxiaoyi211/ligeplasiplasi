@@ -2,7 +2,7 @@
 #include <map>
 #include <string>
 
-//potion, trinket, items, Q2,QSS,semiR,R cant stop, and casue error
+//Q2,semiR,R cant stop, and casue error
 
 PluginSetup("Miss Xu Fortune");
 
@@ -12,7 +12,6 @@ IMenu* HarassMenu;
 IMenu* FarmMenu;
 IMenu* JungleMenu;
 IMenu* MiscMenu;
-IMenu* FleeMenu;
 IMenu* Drawings;
 IMenu* ItemsMenu;
 IMenu* PotionMenu;
@@ -102,7 +101,7 @@ void  Menu()
 	//Combo
 	ComboMenu = MainMenu->AddMenu("Combo Settings");
 	ComboQ = ComboMenu->CheckBox("Use Q", true);
-	ComboQ2 = ComboMenu->CheckBox("Bounce Q To Enemy", true);
+	ComboQ2 = ComboMenu->CheckBox("Try Bounce Q To Enemy", true);
 	ComboW = ComboMenu->CheckBox("Use W", true);
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	ComboR = ComboMenu->CheckBox("Use R", true);
@@ -139,7 +138,7 @@ void  Menu()
 	//Items
 	ItemsMenu = MainMenu->AddMenu("Items Setting");
 	Blade_Cutlass = ItemsMenu->CheckBox("Blade-Cutlass", true);
-	Ghost_Blade = ItemsMenu->CheckBox("Blade-Cutlass", true);
+	Ghost_Blade = ItemsMenu->CheckBox("Ghost-Blade", true);
 	MyHpPreBlade = ItemsMenu->AddInteger("Use Blade-Cutlass if my HP <", 10, 100, 35);
 	EnemyHpPreBlade = ItemsMenu->AddInteger("Use Blade-Cutlass if Enemy HP <", 10, 100, 35);
 
@@ -174,7 +173,7 @@ void LoadSpells()
 	E = GPluginSDK->CreateSpell2(kSlotE, kCircleCast, false, true, static_cast<eCollisionFlags>(kCollidesWithNothing));
 	R = GPluginSDK->CreateSpell2(kSlotR, kConeCast, false, true, static_cast<eCollisionFlags>(kCollidesWithYasuoWall));
 
-	Q->SetSkillshot(0.25f, 25.f, 1000.f, 650.f);
+	Q->SetSkillshot(0.25f, 25.f, 1000.f, 550.f);
 	W->SetSkillshot(0.25f, 0.f, 1000.f, 0.f);
 	E->SetSkillshot(0.35f, 200.f, 3200.f, 1000.f);
 	R->SetSkillshot(0.25f, 0.f, 1000.f, 1400.f);
@@ -187,6 +186,16 @@ void LoadSpells()
 	if (strcmp(slot2, "SummonerHeal") == 0) { Heal = GPluginSDK->CreateSpell(kSummonerSlot2, 850); }
 
 	//Items
+	Ghostblade = GPluginSDK->CreateItemForId(3142, 0);
+	blade = GPluginSDK->CreateItemForId(3153, 550);
+	Cutlass = GPluginSDK->CreateItemForId(3144, 550);
+	Mersci = GPluginSDK->CreateItemForId(3140, 550);
+	QuickSiv = GPluginSDK->CreateItemForId(3137, 0);
+	HealthPot = GPluginSDK->CreateItemForId(2003, 0);
+	CorruptPot = GPluginSDK->CreateItemForId(2033, 0);
+	RefillPot = GPluginSDK->CreateItemForId(2031, 0);
+	Biscuit = GPluginSDK->CreateItemForId(2010, 0);
+	hunter = GPluginSDK->CreateItemForId(2032, 0);
 	Trinket = GPluginSDK->CreateItemForId(3363, 4000);
 	Yellow = GPluginSDK->CreateItemForId(3340, 600);
 }
@@ -240,7 +249,34 @@ int CountEnemiesInRange(float range)
 //Excute Combo Logic
 void Combo()
 {
-	if (ComboQ->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (ComboQ->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
+	{
+		auto Enemy = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy2 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
+		for (auto minion : GEntityList->GetAllMinions(false, true, true))
+			if (minion != nullptr && !minion->IsDead())
+		{
+			if (Q->IsReady() && ComboQ2->Enabled() && minion->IsValidTarget(Player, Q->Range()))
+			{
+				for (auto Enemy : GEntityList->GetAllHeros(false, true))
+				{
+					//Sometimes it cast Q to random minion
+					if ((GEntityList->Player()->GetPosition() - Enemy->GetPosition()).Length2D() <= Q->Range() && (Enemy->GetPosition() - Enemy2->GetPosition()).Length2D() <= 250 && minion->IsValidTarget(GEntityList->Player(), Q->Range()))
+					{
+						Q->CastOnTarget(minion, 5);
+					}
+				}
+			}
+			else
+			{
+				if (Q->IsReady() && Enemy->IsValidTarget(Player, Q->Range()))
+				{
+					Q->CastOnTarget(Enemy);
+				}
+			}
+		}
+	}
+	/*if (ComboQ->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
 		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
@@ -267,9 +303,9 @@ void Combo()
 				}
 			}
 		}
-	}
+	}*/
 
-	if (ComboW->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (ComboW->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, 575);
 		if (target != nullptr && !target->IsDead() && W->IsReady() && target->IsValidTarget(Player, 575))
@@ -278,7 +314,7 @@ void Combo()
 		}
 	}
 
-	if (ComboE->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (ComboE->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, E->Range());
 		if (target != nullptr && !target->IsDead() && E->IsReady() && target->IsValidTarget(Player, E->Range()))
@@ -291,7 +327,7 @@ void Combo()
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
 
-		if (!target->IsValidTarget(Player, R->Range()) && Player->HasBuff("missfortunebulletsound"))
+		if (!target->IsValidTarget(Player, R->Range()) && Player->HasBuff("MissFortuneBulletSound"))
 		{
 			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
 		}
@@ -309,7 +345,7 @@ void Harass()
 {
 	if (Player->ManaPercent() < HarassManaPercent->GetInteger())
 		return;
-	if (HarassQ->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (HarassQ->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
 		auto Enemy1 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
@@ -337,7 +373,7 @@ void Harass()
 	}
 
 
-	if (HarassW->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (HarassW->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, 575);
 		if (target != nullptr && !target->IsDead() && W->IsReady() && target->IsValidTarget(Player, 575))
@@ -347,7 +383,7 @@ void Harass()
 	}
 
 
-	if (HarassE->Enabled() && !Player->HasBuff("missfortunebulletsound"))
+	if (HarassE->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, E->Range());
 		if (target != nullptr && !target->IsDead() && E->IsReady() && target->IsValidTarget(Player, E->Range()))
@@ -457,7 +493,7 @@ void SemiR()
 {
 	if (IsKeyDown(AutoR) && GEntityList->Player()->GetSpellState(kSlotR) == Ready)
 	{
-		if (!Player->HasBuff("missfortunebulletsound"))
+		if (!Player->HasBuff("MissFortuneBulletSound"))
 		{
 			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
 		}
