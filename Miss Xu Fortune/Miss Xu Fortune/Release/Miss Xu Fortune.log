@@ -1,12 +1,14 @@
 ﻿  PluginSDK.cpp
   Miss Xu Fortune.cpp
-Miss Xu Fortune.cpp(336): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Miss Xu Fortune.cpp(360): warning C4804: “>”: 在操作中使用类型“bool”不安全
-Miss Xu Fortune.cpp(580): warning C4804: “>”: 在操作中使用类型“bool”不安全
-Miss Xu Fortune.cpp(595): warning C4804: “>”: 在操作中使用类型“bool”不安全
+Miss Xu Fortune.cpp(289): warning C4804: “<=”: 在操作中使用类型“bool”不安全
+Miss Xu Fortune.cpp(353): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Miss Xu Fortune.cpp(377): warning C4804: “>”: 在操作中使用类型“bool”不安全
+Miss Xu Fortune.cpp(597): warning C4804: “>”: 在操作中使用类型“bool”不安全
+Miss Xu Fortune.cpp(612): warning C4804: “>”: 在操作中使用类型“bool”不安全
+Miss Xu Fortune.cpp(699): warning C4804: “<=”: 在操作中使用类型“bool”不安全
     正在创建库 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Miss Xu Fortune\Release\Miss Xu Fortune.lib 和对象 C:\Users\SCH\Documents\Visual Studio 2015\Projects\Miss Xu Fortune\Release\Miss Xu Fortune.exp
   正在生成代码
-  All 289 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 296 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   已完成代码的生成
   Miss Xu Fortune.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\Miss Xu Fortune\Release\Miss Xu Fortune.dll
   Miss Xu Fortune.vcxproj -> C:\Users\SCH\Documents\Visual Studio 2015\Projects\Miss Xu Fortune\Release\Miss Xu Fortune.pdb (Full PDB)

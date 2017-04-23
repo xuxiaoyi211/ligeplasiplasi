@@ -249,7 +249,7 @@ int CountEnemiesInRange(float range)
 //Excute Combo Logic
 void Combo()
 {
-	if (ComboQ->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
+	/*if (ComboQ->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
 	{
 		auto Enemy = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
 		auto Enemy2 = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
@@ -272,6 +272,23 @@ void Combo()
 				if (Q->IsReady() && Enemy->IsValidTarget(Player, Q->Range()))
 				{
 					Q->CastOnTarget(Enemy);
+				}
+			}
+		}
+	}*/
+
+	if (ComboQ->Enabled() && Q->IsReady() && ComboQ2->Enabled() && !Player->HasBuff("MissFortuneBulletSound"))
+	{
+		auto minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+		auto Enemy = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
+		for (auto Enemy : GEntityList->GetAllHeros(false, true));
+		for (auto minion : GEntityList->GetAllMinions(false, true, true));
+		{
+			if (minion != nullptr && Enemy != nullptr)
+			{
+				if ((GEntityList->Player()->GetPosition() - minion->GetPosition()).Length2D() <= Q->Range() && 250 >= (minion->GetPosition() - Enemy->GetPosition()).Length2D() <= (GEntityList->Player()->GetPosition() - Enemy->GetPosition()).Length2D() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && GPluginSDK->GetDamage()->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ) > minion->GetHealth())
+				{
+					Q->LastHitMinion();
 				}
 			}
 		}
@@ -327,13 +344,13 @@ void Combo()
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
 
-		if (!target->IsValidTarget(Player, R->Range()) && Player->HasBuff("MissFortuneBulletSound"))
+		if (target != nullptr && !target->IsValidTarget(Player, R->Range()) && Player->HasBuff("MissFortuneBulletSound"))
 		{
 			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
 		}
 		else
 		{
-			if (target != nullptr && !target->IsDead() && R->IsReady() && target->IsValidTarget(Player, R->Range()) && !target->IsValidTarget(Player, SafeR->GetInteger()))
+			if (!target->IsDead() && R->IsReady() && target->IsValidTarget(Player, R->Range()) && !target->IsValidTarget(Player, SafeR->GetInteger()))
 			{
 				R->CastOnTarget(target);
 			}
@@ -660,6 +677,7 @@ void trinket()
 PLUGIN_EVENT(void) OnRender()
 {
 	auto target = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, Q->Range());
+
 	if (DrawReady->Enabled())
 	{
 		if (Q->IsReady() && DrawQ->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), Q->Range()); }
@@ -668,7 +686,35 @@ PLUGIN_EVENT(void) OnRender()
 		
 		if (R->IsReady() && DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
-		//if (Q->IsReady() && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions(false,true,true)->GetPosition(), Vec4(255, 255, 0, 255), 500); }
+
+		if (target != nullptr && Q->IsReady() && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range()))
+		{
+			auto Enemy = GTargetSelector->FindTarget(ClosestToCursorPriority, PhysicalDamage, Q->Range());
+			for (auto minion : GEntityList->GetAllMinions(false, true, true))
+			{
+				//minion = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range());
+				Enemy = GTargetSelector->FindTarget(ClosestPriority, PhysicalDamage, Q->Range() + 250);
+				{
+					{
+						if ((GEntityList->Player()->GetPosition() - minion->GetPosition()).Length2D() <= Q->Range() && 250 >= (minion->GetPosition() - Enemy->GetPosition()).Length2D() <= (GEntityList->Player()->GetPosition() - Enemy->GetPosition()).Length2D())
+						{
+							//AMBER <3
+							Vec3 From = GEntityList->Player()->GetPosition(); // My Position
+							Vec3 To = minion->GetPosition(); // Target Position
+							Vec3 Vector = To - (From - To).VectorNormalize() * 500; // Extend the Vector to 250range
+																					// Now we'll make the two point for the triange
+							Vec3 A = Vector + (Vector - To).VectorNormalize().Perpendicular() * (-100);
+							Vec3 B = Vector + (Vector - To).VectorNormalize().Perpendicular() * (100);
+							Vec2 C1; Vec2 A1; Vec2 B1; GGame->Projection(To, &C1); GGame->Projection(A, &A1); GGame->Projection(B, &B1);
+							// Now we have 3 points, just draw 3 lines
+							GRender->DrawLine(C1, A1, Vec4(255, 255, 255, 255));
+							GRender->DrawLine(C1, B1, Vec4(255, 255, 255, 255));
+							GRender->DrawLine(A1, B1, Vec4(255, 255, 255, 255));
+						}
+					}
+				}
+			}
+		}
 	}
 	else
 	{
@@ -678,7 +724,20 @@ PLUGIN_EVENT(void) OnRender()
 
 		if (DrawR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(255, 255, 0, 255), R->Range()); }
 
-		//if (DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range())) { GRender->DrawOutlinedCircle(GEntityList->GetAllMinions(false, true, true)->GetPosition(), Vec4(255, 255, 0, 255), 500); }
+		if (target != nullptr && DrawQ2->Enabled() && target->IsValidTarget(Player, Q->Range()))
+		{
+			Vec3 From = GEntityList->Player()->GetPosition(); // My Position
+			Vec3 To = target->GetPosition(); // Target Position
+			Vec3 Vector = To - (From - To).VectorNormalize() * 250; // Extend the Vector to 250range
+																	// Now we'll make the two point for the triange
+			Vec3 A = Vector + (Vector - To).VectorNormalize().Perpendicular() * (-100);
+			Vec3 B = Vector + (Vector - To).VectorNormalize().Perpendicular() * (100);
+			Vec2 C1; Vec2 A1; Vec2 B1; GGame->Projection(To, &C1); GGame->Projection(A, &A1); GGame->Projection(B, &B1);
+			// Now we have 3 points, just draw 3 lines
+			GRender->DrawLine(C1, A1, Vec4(255, 255, 255, 255));
+			GRender->DrawLine(C1, B1, Vec4(255, 255, 255, 255));
+			GRender->DrawLine(A1, B1, Vec4(255, 255, 255, 255));
+		}
 	}
 }
 
