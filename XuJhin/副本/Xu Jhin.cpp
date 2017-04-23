@@ -139,7 +139,7 @@ void  Menu()
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	AutoR = ComboMenu->CheckBox("Use R In Combo", false);
-	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 600, 3500);
+	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 3500, 600);
 	AutoFire = ComboMenu->CheckBox("Auto Fire Bullets", false);
 	Rtap = ComboMenu->CheckBox("Enable Tap R", true);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
@@ -819,10 +819,10 @@ void AutoRMode()
 
 void AutoFiring()
 {
-	if (AutoFire->Enabled() && !Rtap->Enabled() && Player->HasBuff("JhinRShot"))
+	if (AutoFire->Enabled() && Player->HasBuff("JhinRShot"))
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
-		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()) && !Player->IsValidTarget(target, SafeAutoR->GetInteger()))
+		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()))
 		{
 			R->CastOnTarget(target, kHitChanceHigh);
 		}

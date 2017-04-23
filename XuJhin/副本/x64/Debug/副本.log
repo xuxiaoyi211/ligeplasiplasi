@@ -1,0 +1,13 @@
+﻿  Xu Jhin.cpp
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(9): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(237): warning C4305: “参数”: 从“double”到“float”截断
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(462): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(465): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(810): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(851): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+c:\users\sch\documents\github\ligeplasiplasi\xujhin\副本\xu jhin.cpp(862): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+  PluginSDK.cpp
+  正在生成代码...
+    正在创建库 C:\Users\SCH\Documents\GitHub\ligeplasiplasi\XuJhin\x64\Debug\Xu Jhin.lib 和对象 C:\Users\SCH\Documents\GitHub\ligeplasiplasi\XuJhin\x64\Debug\Xu Jhin.exp
+  副本.vcxproj -> C:\Users\SCH\Documents\GitHub\ligeplasiplasi\XuJhin\x64\Debug\Xu Jhin.dll
+  副本.vcxproj -> C:\Users\SCH\Documents\GitHub\ligeplasiplasi\XuJhin\x64\Debug\Xu Jhin.pdb (Full PDB)
