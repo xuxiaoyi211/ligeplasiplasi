@@ -139,8 +139,8 @@ void  Menu()
 	}
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	AutoR = ComboMenu->CheckBox("Use R In Combo", false);
-	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 3500, 600);
-	AutoFire = ComboMenu->CheckBox("Auto Fire Bullets", false);
+	SafeAutoR = ComboMenu->AddInteger("Safe Range For Auto R", 0, 3500, 500);
+	//AutoFire = ComboMenu->CheckBox("Auto Fire Bullets", false);
 	Rtap = ComboMenu->CheckBox("Enable Tap R", true);
 	ComboR = ComboMenu->AddKey("R Fire Key", 84);
 	for (auto Enemy : GEntityList->GetAllHeros(false, true))
@@ -381,6 +381,7 @@ void Combo()
 			}
 		}
 	}
+
 	if (ComboW->Enabled() && !Player->HasBuff("JhinRShot"))
 	{
 		if (W->IsReady())
@@ -400,7 +401,6 @@ void Combo()
 					}
 					if (ChampionuseW[Enemys->GetNetworkId()]->Enabled() && !ComboWcc->Enabled() && !target->IsInvulnerable() && prediction_output.HitChance >= kHitChanceHigh)
 					{
-						if (target->HasBuff("jhinespotteddebuff"))
 							W->CastOnTarget(target, kHitChanceHigh);
 						//GGame->PrintChat("choose target, no buff w");
 					}
@@ -817,17 +817,17 @@ void AutoRMode()
 	}
 }
 
-void AutoFiring()
+/*void AutoFiring()
 {
 	if (AutoFire->Enabled() && Player->HasBuff("JhinRShot"))
 	{
 		auto target = GTargetSelector->FindTarget(QuickestKill, PhysicalDamage, R->Range());
-		if (target != nullptr && !target->IsDead() && GEntityList->Player()->IsValidTarget(target, R->Range()))
+		if (target != nullptr && !target->IsDead() && (Player->IsValidTarget(target, R->Range())))
 		{
 			R->CastOnTarget(target, kHitChanceHigh);
 		}
 	}
-}
+}*/
 /*void Flee()
 {
 if (!FleeJ(Flee))
@@ -961,7 +961,7 @@ PLUGIN_EVENT(void) OnGameUpdate()
 	}
 	AutoImmobile();
 	AutoRMode();
-	AutoFiring();
+	//AutoFiring();
 	killsteal();
 	UseItems();
 	Usepotion();
