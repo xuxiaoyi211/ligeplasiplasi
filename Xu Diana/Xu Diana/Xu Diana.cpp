@@ -471,7 +471,7 @@ void  Menu()
 		int MinionDie = 0;
 		for (auto minions : GEntityList->GetAllMinions(false, true, false))
 		{
-			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()))
+			if (minions != nullptr && Player->IsValidTarget(minions, Q->Range()) && !Player->IsValidTarget(minions, 150))
 			{
 				auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotQ);
 				auto dmg1 = GDamage->GetAutoAttackDamage(Player, minions, true);
