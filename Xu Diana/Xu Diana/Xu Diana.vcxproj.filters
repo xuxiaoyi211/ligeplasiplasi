@@ -29,9 +29,6 @@
     <ClInclude Include="LPPConstants.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Plugin.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="PluginData.h">
       <Filter>头文件</Filter>
     </ClInclude>

@@ -1,11 +1,14 @@
 ﻿  PluginSDK.cpp
   Xu Diana.cpp
 Xu Diana.cpp(20): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
-Xu Diana.cpp(877): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
-Xu Diana.cpp(881): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Diana.cpp(863): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+Xu Diana.cpp(868): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+Xu Diana.cpp(874): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+Xu Diana.cpp(975): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
+Xu Diana.cpp(979): warning C4244: “参数”: 从“int”转换到“float”，可能丢失数据
     正在创建库 C:\Users\SCH\Documents\GitHub\ligeplasiplasi\Xu Diana\Release\Xu Diana.lib 和对象 C:\Users\SCH\Documents\GitHub\ligeplasiplasi\Xu Diana\Release\Xu Diana.exp
   正在生成代码
-  All 305 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 314 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   已完成代码的生成
   Xu Diana.vcxproj -> C:\Users\SCH\Documents\GitHub\ligeplasiplasi\Xu Diana\Release\Xu Diana.dll
   Xu Diana.vcxproj -> C:\Users\SCH\Documents\GitHub\ligeplasiplasi\Xu Diana\Release\Xu Diana.pdb (Full PDB)

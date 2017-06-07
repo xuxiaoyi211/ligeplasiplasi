@@ -117,7 +117,6 @@
   <ItemGroup>
     <ClInclude Include="Extension.h" />
     <ClInclude Include="LPPConstants.h" />
-    <ClInclude Include="Plugin.h" />
     <ClInclude Include="PluginData.h" />
     <ClInclude Include="PluginSDK.h" />
     <ClInclude Include="Vector3.h" />

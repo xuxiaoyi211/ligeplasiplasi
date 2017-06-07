@@ -17,12 +17,13 @@
 char* Author = "Xu211";
 char* Champion = "Diana";
 char* Plugin = "Xu Diana";
-int Version = 1.0;
+int Version = 1.5;
 
 PluginSetup("Xu Diana");
 
 IMenu* MainMenu;
 IMenu* ComboMenu;
+IMenu* DRComboMenu;
 IMenu* ChaseComboMenu;
 IMenu* HarassMenu;
 IMenu* FarmMenu;
@@ -40,8 +41,7 @@ IMenuOption* ComboW;
 IMenuOption* ComboE;
 IMenuOption* ComboR;
 IMenuOption* ComboRB;
-IMenuOption* UseMisaCombo;
-IMenuOption* ComboMisa;
+IMenuOption* ComboRBm;
 IMenuOption* UseIgnitecombo;
 
 IMenuOption* ChaseKey;
@@ -62,6 +62,7 @@ IMenuOption* FarmQ;
 IMenuOption* FarmW;
 IMenuOption* FarmManaPercent;
 IMenuOption* lasthitQ;
+IMenuOption* lasthitW;
 IMenuOption* JungleQ;
 IMenuOption* JungleW;
 IMenuOption* JungleE;
@@ -72,9 +73,9 @@ IMenuOption* KillstealQ;
 IMenuOption* KillstealR;
 IMenuOption* AutoQSS;
 
-/*IMenuOption* FleeKey;
+IMenuOption* FleeKey;
 IMenuOption* FleeR;
-IMenuOption* FleeQR;*/
+IMenuOption* FleeQR;
 
 IMenuOption* usepotion;
 IMenuOption* usepotionhpper;
@@ -88,6 +89,7 @@ IMenuOption* DrawW;
 IMenuOption* DrawE;
 IMenuOption* DrawChaseE;
 IMenuOption* DrawR;
+IMenuOption* DrawMode;
 IMenuOption* DrawChaseR;
 IMenuOption* UseTrinket;
 
@@ -114,6 +116,17 @@ ISpell2* R;
 ISpell* Ignite;
 ISpell* Heal;
 
+float KeyPres;
+bool buff = false;
+
+int xOffset = 10;
+int yOffset = 20;
+int Width = 103;
+int Height = 8;
+Vec4 Color = Vec4(105, 198, 5, 255);
+Vec4 FillColor = Vec4(198, 176, 5, 255);
+Vec4 Color2 = Vec4(25, 255, 0, 200);
+
 std::map<int, IMenuOption*> ChampionuseEGap;
 std::map<int, IMenuOption*> ChampionuseWGap;
 std::map<int, IMenuOption*> ChampionuseRQ;
@@ -137,18 +150,12 @@ void  Menu()
 	ComboW = ComboMenu->CheckBox("Use W", true);
 	ComboE = ComboMenu->CheckBox("Use E", true);
 	ComboR = ComboMenu->CheckBox("Use R", true);
-	ComboRB = ComboMenu->CheckBox("Only R Moonlight Target", true);
-	Note2 = ComboMenu->CheckBox("^ Low ping, Untick will be misaya", true);
-	/*UseMisaCombo = ComboMenu->CheckBox("Enable Misaya Combo", true);
-	ComboMisa = ComboMenu->AddKey("Misaya Combo Key", 84);
-	for (auto Enemy : GEntityList->GetAllHeros(false, true))
-	{
-		std::string szMenuName = "Use Misaya Combo On - " + std::string(Enemy->ChampionName());
-		ChampionuseRQ[Enemy->GetNetworkId()] = ComboMenu->CheckBox(szMenuName.c_str(), false);
-	}*/
+	ComboRB = ComboMenu->CheckBox("Only R Moonlight Target(Toggle)",true);
+	//ComboRBm = ComboMenu->AddKey("Only R Moonlight Target(Toggle)", 'H');
+	Note2 = ComboMenu->CheckBox("^ Low ping, Untick will be Misaya", true);
 
 	//Chase Combo
-	ChaseComboMenu = MainMenu->AddMenu("Chase Combo");
+	ChaseComboMenu = MainMenu->AddMenu("Chase Mode");
 	ChaseKey = ChaseComboMenu->AddKey("Chase Key", 74);
 	ChaseQ = ChaseComboMenu->CheckBox("Use Q", true);
 	ERange = ChaseComboMenu->AddInteger("Minium Range To E", 10, 450, 420);
@@ -172,6 +179,7 @@ void  Menu()
 	FarmW = FarmMenu->CheckBox("Use W Farm", false);
 	FarmManaPercent = FarmMenu->AddInteger("Mana Percent for Farm", 10, 100, 45);
 	lasthitQ = FarmMenu->CheckBox("Out Range Q Lasthit", true);
+	lasthitW = FarmMenu->CheckBox("W Lasthit", true);
 
 	//Jungle
 	JungleMenu = MainMenu->AddMenu("Jungle Setting");
@@ -188,10 +196,10 @@ void  Menu()
 	AutoQSS = MiscMenu->CheckBox("Auto QSS", true);
 
 	//Flee
-	/*FleeMenu = MainMenu->AddMenu("Flee Setting");
+	FleeMenu = MainMenu->AddMenu("Flee Setting");
 	FleeR = FleeMenu->CheckBox("Use R To Flee", true);
 	FleeQR = FleeMenu->CheckBox("Use QR To Flee", false);
-	FleeKey = FleeMenu->AddKey("Flee Key", 74);*/
+	FleeKey = FleeMenu->AddKey("Flee Key", 74);
 
 	//Potions
 	PotionMenu = MainMenu->AddMenu("Potion Setting");
@@ -223,6 +231,7 @@ void  Menu()
 	DrawW = Drawings->CheckBox("Draw W", false);
 	DrawE = Drawings->CheckBox("Draw E", false);
 	DrawR = Drawings->CheckBox("Draw R", true);
+	DrawMode = Drawings->CheckBox("Draw Combo Mode", true);
 
 	//Trinkets
 	TrinketMenu = MainMenu->AddMenu("Auto Trinket");
@@ -314,6 +323,42 @@ void  Menu()
 		return enemies;
 	}
 
+	//KS
+	void KillSteal()
+	{
+		for (auto Enemy : GEntityList->GetAllHeros(false, true))
+		{
+			auto QDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
+			if (Enemy != nullptr && !Enemy->IsDead())
+			{
+				if (KillstealQ->Enabled() && Q->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= Enemy->GetHealth())
+				{
+					Q->CastOnTarget(Enemy);
+					//GGame->PrintChat("ks  q");
+				}
+			}
+
+			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
+			auto WDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotW);
+			auto attackDamage = GDamage->GetAutoAttackDamage(Player, Enemy, true);
+			RDamage = RDamage + attackDamage;
+			if (W->IsReady())
+			{
+				RDamage = RDamage + WDamage;
+			}
+			if (Enemy != nullptr && !Enemy->IsDead())
+			{
+				if (KillstealR->Enabled() && R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
+				{
+					R->CastOnTarget(Enemy);
+					//GGame->PrintChat("ks  r");
+				}
+
+			}
+		}
+	}
+	//---------------------------------------------KILLSTEAL END-------------------------------------------------------------------------------------------------
+
 	//Excute Combo Logic
 	void Combo()
 	{
@@ -344,6 +389,60 @@ void  Menu()
 				{
 					Q->CastOnTarget(target);
 					//GGame->PrintChat("cast q");
+
+					if (ComboR->Enabled())
+					{
+						if (R->IsReady())
+						{
+							auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
+							if (target != nullptr)
+							{
+								if (ComboRB->Enabled() && target->HasBuff("dianamoonlight") && Player->IsValidTarget(target, R->Range()))
+								{
+									R->CastOnTarget(target);
+									//GGame->PrintChat("cast r only buff");
+								}
+								else
+								{
+									if (!ComboRB->Enabled() && Player->IsValidTarget(target, R->Range()))
+									{
+										R->CastOnTarget(target);
+										//GGame->PrintChat("cast r");
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (ComboR->Enabled())
+		{
+			if (R->IsReady())
+			{
+				auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
+				if (target != nullptr)
+				{
+					if (!ComboRB->Enabled() && Player->IsValidTarget(target, R->Range()))
+					{
+						R->CastOnTarget(target);
+					}
+				}
+			}
+		}
+
+		if (ComboR->Enabled())
+		{
+			if (R->IsReady())
+			{
+				auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
+				if (target != nullptr)
+				{
+					if (target->HasBuff("dianamoonlight") && Player->IsValidTarget(target, R->Range()))
+					{
+						R->CastOnTarget(target);
+					}
 				}
 			}
 		}
@@ -377,55 +476,9 @@ void  Menu()
 			}
 		}
 
-		if (ComboR->Enabled())
-		{
-			if (R->IsReady())
-			{
-				auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
-				if (target != nullptr && ComboRB->Enabled() && target->HasBuff("dianamoonlight") && Player->IsValidTarget(target, R->Range()))
-				{
-					R->CastOnUnit(target);
-					//GGame->PrintChat("cast r only buff");
-				}
-				else
-				{
-					if (!ComboRB->Enabled() && Player->IsValidTarget(target, R->Range()))
-					{
-						R->CastOnUnit(target);
-						//GGame->PrintChat("cast r");
-					}
-				}
-			}
-		}
+		KillSteal();
+
 	}
-
-	//Misaya Combo
-	/*void MisayaCombo()
-	{
-		if (IsKeyDown(ComboMisa))
-		{
-			GGame->IssueOrder(Player, kMoveTo, GGame->CursorPosition());
-			//GGame->PrintChat("misaya move");
-			if (UseMisaCombo->Enabled());
-			{
-				if (GEntityList->Player()->GetSpellState(kSlotR) == Ready &&  GEntityList->Player()->GetSpellState(kSlotQ) == Ready)
-				{
-					auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
-
-					R->CastOnUnit(target);
-					//GGame->PrintChat("cast r misaya");
-
-					AdvPredictionOutput prediction_output;
-					Q->RunPrediction(target, true, kCollidesWithYasuoWall, &prediction_output);
-					if (ChampionuseRQ[target->GetNetworkId()]->Enabled() && Player->IsValidTarget(target, Q->Range()) && prediction_output.HitChance >= kHitChanceVeryHigh)
-					{
-						Q->CastOnTarget(target);
-						//GGame->PrintChat("cast q misaya");
-					}
-				}
-			}
-		}
-	}*/
 	//---------------------------------------------COMBO END-------------------------------------------------------------------------------------------------
 
 	//Harass
@@ -490,6 +543,31 @@ void  Menu()
 		}
 	}
 	//---------------------------------------------LASTHITQ END-------------------------------------------------------------------------------------------------
+
+
+	void lastHitW()
+	{
+		if (lasthitW->Enabled())
+		{
+			int minionDie = 0;
+			for (auto minions : GEntityList->GetAllMinions(false, true, false))
+			{
+				if (minions != nullptr && Player->IsValidTarget(minions, W->Range())) {
+					auto dmg = GDamage->GetSpellDamage(Player, minions, kSlotW);
+					auto dmg1 = GDamage->GetAutoAttackDamage(Player, minions, true);
+					if (minions->GetHealth() <= dmg || minions->GetHealth() <= dmg1 + dmg)
+						minionDie++;
+					if (W->IsReady()) {
+						if (minionDie > 1)
+						{
+							W->CastOnUnit(minions);
+						}
+					}
+
+				}
+			}
+		}
+	}
 
 
 	void LaneClear()
@@ -577,66 +655,10 @@ void  Menu()
 	}
 	//---------------------------------------------JUNGLECLEAR END-------------------------------------------------------------------------------------------------
 
-	//KS
-	void KillSteal()
-	{
-		for (auto Enemy : GEntityList->GetAllHeros(false, true))
-		{
-			auto QDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
-			if (Enemy != nullptr && !Enemy->IsDead())
-			{
-				if (KillstealQ->Enabled() && Q->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= Enemy->GetHealth())
-				{
-					Q->CastOnTarget(Enemy);
-					//GGame->PrintChat("ks  q");
-				}
-			}
-
-			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
-			if (Enemy != nullptr && !Enemy->IsDead())
-			{
-				if (KillstealR->Enabled() && R->IsReady() && Enemy->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= Enemy->GetHealth())
-				{
-					R->CastOnTarget(Enemy);
-					//GGame->PrintChat("ks  r");
-				}
-
-			}
-		}
-		/*
-		for (auto Enemy : GEntityList->GetAllHeros(false, true))
-		{
-			auto QDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotQ);
-			auto RDamage = GDamage->GetSpellDamage(GEntityList->Player(), Enemy, kSlotR);
-			auto target = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
-			AdvPredictionOutput prediction_output;
-			Q->RunPrediction(target, true, kCollidesWithYasuoWall, &prediction_output);
-			if (Enemy != nullptr && !Enemy->IsDead())
-			{
-				if (KillstealQ->Enabled() && Q->IsReady() && target->IsValidTarget(GEntityList->Player(), Q->Range()) && QDamage >= target->GetHealth() && prediction_output.HitChance >= kHitChanceHigh)
-				{
-					Q->CastOnTarget(target);
-					//GGame->PrintChat("ks  q");
-				}
-
-			}
-			
-			auto rtarget = GTargetSelector->FindTarget(QuickestKill, SpellDamage, R->Range());
-			if (Enemy != nullptr && !Enemy->IsDead())
-			{
-				if (KillstealR->Enabled() && R->IsReady() && rtarget->IsValidTarget(GEntityList->Player(), R->Range()) && RDamage >= rtarget->GetHealth())
-				{
-					R->CastOnTarget(rtarget);
-					//GGame->PrintChat("ks  r");
-				}
-
-			}
-		}*/
-	}
-	//---------------------------------------------KILLSTEAL END-------------------------------------------------------------------------------------------------
+	
 
 	//Flee
-	/*void FleeMode()
+	void FleeMode()
 	{
 		if (IsKeyDown(FleeKey))
 		{
@@ -646,62 +668,40 @@ void  Menu()
 				auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
 				for (auto Objects : GEntityList->GetAllMinions(false, true, true))
 				{
-					if (Q->IsReady() && Objects != Enemy && FleeQR->Enabled() && Player->IsValidTarget(Objects, Q->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
+					if (Q->IsReady() && Player->IsFacing(Objects) && Objects != Enemy && FleeQR->Enabled() && Player->IsValidTarget(Objects, Q->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
 					{
 						Q->CastOnTarget(Objects);
 						GGame->PrintChat("flee q");
 					}
-					if (R->IsReady() && FleeQR->Enabled() && Objects->HasBuff("dianamoonlight") && Player->IsValidTarget(Objects, R->Range() && Objects->IsValidTarget() && !Objects->IsDead()))
+					if (R->IsReady() && Player->IsFacing(Objects) && Objects != Enemy && FleeQR->Enabled() && Player->IsValidTarget(Objects, R->Range()) && Objects->IsValidTarget() && !Objects->IsDead() && Objects->HasBuff("dianamoonlight"))
 					{
 						R->CastOnTarget(Objects);
 						GGame->PrintChat("flee r");
 					}
+					else
+						if (Player->IsValidTarget(Objects, R->Range() && Objects->IsValidTarget() && !Objects->IsDead()))
+						{
+							R->CastOnTarget(Objects);
+						}
 				}
 			}
 		}
-
-		/*if (IsKeyDown(FleeKey))
+		if (IsKeyDown(FleeKey))
 		{
 			GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
-			auto QRMANA = R->ManaCost() + Q->ManaCost();
-			if (IsKeyDown(FleeKey) && R->IsReady() &&  Q->IsReady())
 			{
-				//if (Player->ManaPercent() > QRMANA)
-					for (auto Objects : GEntityList->GetAllMinions(false, true, true))
+				auto Enemy = GTargetSelector->FindTarget(QuickestKill, SpellDamage, Q->Range());
+				for (auto Objects : GEntityList->GetAllMinions(false, true, true))
+				{
+					if (R->IsReady() && Player->IsFacing(Objects) && Objects != Enemy && FleeR->Enabled() && Player->IsValidTarget(Objects, R->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
 					{
-						if (Objects != nullptr && Player->IsValidTarget(Objects, Q->Range()) && Objects->IsValidTarget() && !Objects->IsDead())
-						{
-							if (FleeQR->Enabled())
-							{
-								Q->CastOnTarget(Objects);
-								GGame->PrintChat("flee q");
-
-								if (FleeQR->Enabled() && Objects->HasBuff("dianamoonlight"))
-								{
-									R->CastOnTarget(Objects);
-									GGame->PrintChat("flee r");
-								}
-
-							}
-						}
+						R->CastOnTarget(Objects);
+						GGame->PrintChat("flee R ONLY");
 					}
+				}
 			}
 		}
-
-		/*{
-		GGame->IssueOrder(GEntityList->Player(), kMoveTo, GGame->CursorPosition());
-		for (auto Objects : GEntityList->GetAllMinions(false, true, true))
-		{
-		if (Objects != nullptr && GEntityList->Player()->GetSpellState(kSlotR) == Ready && Player->IsValidTarget(Objects, R->Range()) && !Objects->IsDead)
-		{
-		if (FleeR->Enabled())
-		{
-		R->CastOnUnit(Objects);
-		}
-		}
-		}
-		}
-	}*/
+	}
 	//---------------------------------------------FLEE END-------------------------------------------------------------------------------------------------
 
 	//Potions
@@ -830,14 +830,14 @@ void  Menu()
 					W->CastOnPlayer();
 				}
 
-				if (target != nullptr && Player->IsValidTarget(target, Q->Range()))
+				if (target != nullptr && Player->IsValidTarget(target, E->Range()))
 				{
-					if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= ERange->GetInteger())
+					if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() >= ERange->GetInteger())
 					{
 						E->CastOnPlayer();
 					}
 				}
-				if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() <= RRange->GetInteger())
+				if ((GEntityList->Player()->GetPosition() - CurrentPos).Length2D() >= RRange->GetInteger())
 				{
 					R->CastOnTarget(target);
 				}
@@ -845,7 +845,105 @@ void  Menu()
 		}
 
 	}
+
+	void dmgdraw()
+	{
+
+		for (auto hero : GEntityList->GetAllHeros(false, true))
+		{
+			Vec2 barPos = Vec2();
+			if (hero->GetHPBarPosition(barPos) && !hero->IsDead())
+			{
+
+
+
+				auto QDamage = 0;
+				if (GEntityList->Player()->GetSpellBook()->GetLevel(kSlotQ) > 0)
+				{
+					QDamage = GDamage->GetSpellDamage(GEntityList->Player(), hero, kSlotQ);
+				}
+				auto WDamage = 0;
+				if (GEntityList->Player()->GetSpellBook()->GetLevel(kSlotW) > 0)
+				{
+					WDamage = GDamage->GetSpellDamage(GEntityList->Player(), hero, kSlotW);
+				}
+
+				auto rDamage = 0;
+				if (GEntityList->Player()->GetSpellBook()->GetLevel(kSlotR) > 0)
+				{
+					rDamage = GDamage->GetSpellDamage(GEntityList->Player(), hero, kSlotR);
+				}
+
+				auto attackDamage = GDamage->GetAutoAttackDamage(Player, hero, true);
+
+				auto damage = attackDamage;
+				if (Q->IsReady())
+				{
+					damage = damage + QDamage;
+				}
+				if (W->IsReady())
+				{
+					damage = damage + WDamage;
+				}
+
+				if (R->IsReady())
+				{
+					damage = damage + rDamage;
+				}
+				float percentHealthAfterDamage = max(0, hero->GetHealth() - float(damage)) / hero->GetMaxHealth();
+				float yPos = barPos.y + yOffset;
+				float xPosDamage = (barPos.x + xOffset) + Width * percentHealthAfterDamage;
+				float xPosCurrentHp = barPos.x + xOffset + Width * (hero->GetHealth() / hero->GetMaxHealth());
+				if (!hero->IsDead() && hero->IsValidTarget())
+				{
+					float differenceInHP = xPosCurrentHp - xPosDamage;
+					float pos1 = barPos.x + 9 + (107 * percentHealthAfterDamage);
+
+					for (int i = 0; i < differenceInHP; i++)
+					{
+						if (damage < hero->GetHealth())
+						{
+							GRender->DrawLine(Vec2(pos1 + i, yPos), Vec2(pos1 + i, yPos + Height), FillColor);
+						}
+						if (damage > hero->GetHealth())
+						{
+							GRender->DrawLine(Vec2(pos1 + i, yPos), Vec2(pos1 + i, yPos + Height), Color2);
+						}
+						if (damage > hero->GetHealth())
+						{
+							GRender->DrawTextA(Vec2(barPos.x + xOffset, barPos.y + yOffset - 13), Color, "Killable");
+						}
+					}
+				}
+			}
+
+		}
+	}
 	//---------------------------------------------CHASECOMBO END-------------------------------------------------------------------------------------------------
+
+	//Toggle
+	/*void BuffTog()
+	{
+		if (!GGame->IsChatOpen() && GUtility->IsLeagueWindowFocused())
+		{
+			if (GUtility->IsKeyDown(ComboRBm->GetInteger()))
+			{
+				if (buff == true && GGame->Time() > KeyPres)
+				{
+					buff = false;
+					KeyPres = GGame->Time() + 0.250;
+
+				}
+				if (buff == false && GGame->Time() > KeyPres)
+				{
+					buff = true;
+					KeyPres = GGame->Time() + 0.250;
+
+				}
+
+			}
+		}
+	}*/
 
 	//Drawing
 	PLUGIN_EVENT(void) OnRender()
@@ -880,6 +978,45 @@ void  Menu()
 		{
 			if (R->IsReady() && DrawChaseR->Enabled()) { GRender->DrawOutlinedCircle(GEntityList->Player()->GetPosition(), Vec4(0, 139, 0, 255), RRange->GetInteger()); }
 		}
+
+		if (DrawMode->Enabled())
+		{
+			static IFont* pFont = nullptr;
+
+			if (pFont == nullptr)
+			{
+				pFont = GRender->CreateFont("Arial", 15.f, kFontWeightBold);
+				pFont->SetOutline(true);
+				pFont->SetLocationFlags(kFontLocationNormal);
+			}
+			Vec2 pos;
+			if (GGame->Projection(GEntityList->Player()->GetPosition(), &pos))
+			{
+				if (GOrbwalking->GetOrbwalkingMode() == kModeCombo)
+				{
+					std::string text = std::string("高级模式Advanced Mode");
+					Vec4 clr = Vec4(75, 255, 75, 255);
+					pFont->SetColor(clr);
+					pFont->Render(pos.x + 10, pos.y - 20, text.c_str());
+				}
+				if (IsKeyDown(ChaseKey))
+				{
+					std::string text = std::string("追击模式Chase Mode");
+					Vec4 clr = Vec4(71, 255, 255, 255); 
+					pFont->SetColor(clr);
+					pFont->Render(pos.x + 10, pos.y - 20, text.c_str());
+				}
+				if (IsKeyDown(FleeKey))
+				{
+					std::string text = std::string("逃跑模式Flee！");
+					Vec4 clr = Vec4(254, 67,145, 255);
+					pFont->SetColor(clr);
+					pFont->Render(pos.x + 10, pos.y - 20, text.c_str());
+				}
+			}
+		}
+
+		dmgdraw();
 	}
 	//---------------------------------------------DRAWING END-------------------------------------------------------------------------------------------------
 
@@ -918,36 +1055,26 @@ void  Menu()
 		if (GOrbwalking->GetOrbwalkingMode() == kModeLastHit)
 		{
 			LastHitQ();
+			lastHitW();
 		}
 
 		if (GOrbwalking->GetOrbwalkingMode() == kModeMixed)
 		{
 			Harass();
 			LastHitQ();
+			lastHitW();
 		}
 		if (GOrbwalking->GetOrbwalkingMode() == kModeLaneClear)
 		{
 			LaneClear();
 			JungleClear();
 			LastHitQ();
+			lastHitW();
 		}
-		//FleeMode();
+		FleeMode();
 		ChaseCombo();
-		//MisayaCombo();
-		/*if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
-		{
-			
-		}
-
-		if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
-		{
-			
-		}
-
-		if (GOrbwalking->GetOrbwalkingMode() == kModeCustom)
-		{
-			
-		}*/
+		KillSteal();
+		//BuffTog();
 	}
 
 	//OnLoad
